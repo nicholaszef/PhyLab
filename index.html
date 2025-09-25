@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PhyLab — Virtual Lab Fisika Interaktif</title>
+  <meta name="description" content="PhyLab: virtual lab berbasis web untuk memahami konsep fisika melalui simulasi interaktif.">
+  <meta name="keywords" content="fisika, simulasi, lab virtual, pendidikan, ITB, PhyLab">
+  <meta name="author" content="Nicho">
+  <meta name="theme-color" content="#60a5fa">
+  <meta property="og:title" content="PhyLab — Virtual Lab Fisika Interaktif">
+  <meta property="og:description" content="Virtual lab fisika berbasis web untuk belajar konsep inti fisika melalui simulasi interaktif.">
+  <meta property="og:type" content="website">
+  <meta name="robots" content="index, follow">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="nav container">
+      <div class="nav-brand">
+        <img src="images/logo.png" alt="PhyLab Logo" width="20" height="30" />
+        <strong>PhyLab</strong>
+      </div>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="menu">
+        Menu
+      </button>
+      <ul id="menu" class="menu">
+        <li><a href="#materi">Materi</a></li>
+        <li><a href="#minilab">Mini Lab</a></li>
+        <li><a href="#diskusi">Diskusi</a></li>
+      </ul>
+      <div class="actions">
+        <div id="userInfo" class="user-info"></div>
+        <button id="loginBtn" class="primary" onclick="document.getElementById('loginDialog').showModal();">Login</button>
+        <button id="signUpBtn" class="ghost" onclick="document.getElementById('signUpDialog').showModal();">Sign Up</button>
+      </div>
+    </nav>
+  </header>
+
+  <main id="konten">
+    <section id="home" class="hero">
+      <div class="hero-inner container">
+        <div class="brand-lockup">
+          <img src="images/logo.png" alt="PhyLab Logo" width="60" height="82" />
+          <h1 class="brand">PhyLab</h1>
+        </div>
+        <p class="tagline">
+          Virtual lab fisika berbasis web untuk belajar konsep inti fisika melalui simulasi interaktif.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="#minilab">Coba Mini Lab</a>
+          <a class="btn ghost" href="#materi">Jelajahi Materi</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="materi" class="container materi fade-in">
+      <header class="section-header">
+        <h2>Jelajahi Materi Fisika Dasar 1A</h2>
+        <p class="section-subtitle">Daftar materi pilihan dari silabus FI-1101 untuk Mahasiswa TPB ITB.</p>
+      </header>
+      <div class="materi-grid">
+        <div class="materi-card">
+          <div class="materi-icon">📦</div>
+          <h3>Besaran & Satuan</h3>
+          <p>Dasar-dasar pengukuran dalam fisika.</p>
+          <a href="https://youtu.be/1BgEUvpOUqo?si=BoSgiR7Oo23Mhjed" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+        </div>
+        <div class="materi-card">
+          <div class="materi-icon">🧭</div>
+          <h3>Vektor</h3>
+          <p>Besaran yang memiliki nilai dan arah.</p>
+          <a href="https://youtu.be/IDJUvIMdCWA?si=qBf3X7PAdOYRLIDh" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+        </div>
+        <div class="materi-card">
+          <div class="materi-icon">🚗</div>
+          <h3>Kinematika</h3>
+          <p>Mempelajari gerak tanpa meninjau penyebabnya.</p>
+          <a href="https://youtu.be/3J1E4vA-zPg?si=ZtocA1CRvdlchzTm" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+        </div>
+        <div class="materi-card">
+          <div class="materi-icon">🍎</div>
+          <h3>Dinamika Partikel</h3>
+          <p>Hukum Newton tentang gerak dan gaya.</p>
+          <a href="https://youtu.be/Gq5SrlfEpGU?si=zAw2L7PVVSmq56vM" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+        </div>
+        <div class="materi-card">
+          <div class="materi-icon">⚡️</div>
+          <h3>Usaha & Energi</h3>
+          <p>Konsep kerja, energi kinetik, dan potensial.</p>
+          <a href="https://youtu.be/x_JMeoj_RCw?si=KefkVp3TM_PhCjqd" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+        </div>
+        <div class="materi-card">
+          <div class="materi-icon">💥</div>
+          <h3>Momentum & Tumbukan</h3>
+          <p>Hukum kekekalan momentum linear.</p>
+          <a href="https://youtu.be/A9sJYJ_byrg?si=B0SJOKTylzqP-b9Z" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+        </div>
+        <div class="materi-card">
+          <div class="materi-icon">⚙️</div>
+          <h3>Dinamika Rotasi</h3>
+          <p>Gerak benda yang berputar pada porosnya.</p>
+          <a href="https://youtu.be/XiLtmjdDSKM?si=CCfLlTK2swZpYc57" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+        </div>
+      </div>
+    </section>
+    
+    <section id="minilab" class="minilab fade-in">
+      <div class="container">
+        <div class="lab-grid">
+          <header class="section-header">
+            <h2>Mini Lab: Simulasi Fisika Interaktif</h2>
+            <p>Pilih simulasi yang ingin dipelajari, ubah parameter, dan lihat langsung hasilnya. Tekan <kbd>Spasi</kbd> untuk jeda/jalan simulasi.</p>
+          </header>
+          
+          <div class="lab-tabs">
+            <button class="tab-btn active" data-lab="jatuh-bebas">Jatuh Bebas & Tumbukan</button>
+            <button class="tab-btn" data-lab="proyektil">Gerak Proyektil</button>
+            <button class="tab-btn" data-lab="pendulum">Pendulum Sederhana</button>
+          </div>
+          
+          <!-- Lab Jatuh Bebas -->
+          <div id="jatuh-bebas" class="lab-content active">
+            <figure class="lab-canvas">
+              <canvas id="labCanvas" width="600" height="400"></canvas>
+              <figcaption>Simulasi jatuh bebas dan tumbukan untuk memahami energi & momentum secara intuitif.</figcaption>
+            </figure>
+            <form class="lab-controls">
+              <fieldset>
+                <div class="control-group">
+                  <label for="g">Gravitasi g (m/s²)</label>
+                  <input type="range" id="g" name="gravity" min="0" max="20" step="0.1" value="9.8" />
+                  <output id="gOut" for="g">9.8</output>
+                </div>
+                <div class="control-group">
+                  <label for="e">Restitusi e (0–1)</label>
+                  <input type="range" id="e" name="restitution" min="0" max="1" step="0.01" value="0.80" />
+                  <output id="eOut" for="e">0.80</output>
+                </div>
+                <div class="control-group">
+                  <label for="drag">Gesekan udara</label>
+                  <input type="range" id="drag" name="drag" min="0" max="0.02" step="0.001" value="0.004" />
+                  <output id="dragOut" for="drag">0.004</output>
+                </div>
+              </fieldset>
+              <div class="control-row">
+                <button type="button" id="play" class="primary">▶ Mulai</button>
+                <button type="button" id="pause" class="ghost">⏸ Jeda</button>
+                <button type="button" id="reset" class="ghost">↺ Reset</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Lab Proyektil -->
+          <div id="proyektil" class="lab-content">
+            <figure class="lab-canvas">
+              <canvas id="proyektilCanvas" width="600" height="400"></canvas>
+              <figcaption>Simulasi gerak proyektil untuk memahami kinematika 2D.</figcaption>
+            </figure>
+            <form class="lab-controls">
+              <fieldset>
+                <div class="control-group">
+                  <label for="velocityProyektil">Kecepatan Awal (m/s)</label>
+                  <input type="range" id="velocityProyektil" min="10" max="150" step="5" value="50" />
+                  <output id="velocityProyektilOut" for="velocityProyektil">50</output>
+                </div>
+                <div class="control-group">
+                  <label for="angleProyektil">Sudut (°)</label>
+                  <input type="range" id="angleProyektil" min="0" max="90" step="1" value="45" />
+                  <output id="angleProyektilOut" for="angleProyektil">45</output>
+                </div>
+                <div class="control-group">
+                  <label for="heightProyektil">Ketinggian Awal (m)</label>
+                  <input type="range" id="heightProyektil" min="0" max="50" step="1" value="0" />
+                  <output id="heightProyektilOut" for="heightProyektil">0</output>
+                </div>
+              </fieldset>
+              <div class="control-row">
+                <button type="button" id="playProyektil" class="primary">▶ Mulai</button>
+                <button type="button" id="resetProyektil" class="ghost">↺ Reset</button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Lab Pendulum -->
+          <div id="pendulum" class="lab-content">
+            <figure class="lab-canvas">
+              <canvas id="pendulumCanvas" width="600" height="400"></canvas>
+              <figcaption>Simulasi pendulum sederhana untuk memahami osilasi harmonis.</figcaption>
+            </figure>
+            <form class="lab-controls">
+              <fieldset>
+                <div class="control-group">
+                  <label for="lengthPendulum">Panjang Tali (m)</label>
+                  <input type="range" id="lengthPendulum" min="0.5" max="3" step="0.1" value="1.5" />
+                  <output id="lengthPendulumOut" for="lengthPendulum">1.5</output>
+                </div>
+                <div class="control-group">
+                  <label for="massPendulum">Massa (kg)</label>
+                  <input type="range" id="massPendulum" min="0.1" max="2" step="0.1" value="1" />
+                  <output id="massPendulumOut" for="massPendulum">1</output>
+                </div>
+                <div class="control-group">
+                  <label for="dampingPendulum">Redaman</label>
+                  <input type="range" id="dampingPendulum" min="0" max="0.1" step="0.01" value="0.02" />
+                  <output id="dampingPendulumOut" for="dampingPendulum">0.02</output>
+                </div>
+              </fieldset>
+              <div class="control-row">
+                <button type="button" id="playPendulum" class="primary">▶ Mulai</button>
+                <button type="button" id="resetPendulum" class="ghost">↺ Reset</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="diskusi" class="container diskusi fade-in">
+      <div id="discussionListView">
+        <header class="section-header">
+          <h2>Ruang Diskusi PhyLab</h2>
+          <p class="section-subtitle">Klik sebuah topik untuk melihat detail diskusi atau ajukan pertanyaan baru. Anda harus login untuk berpartisipasi.</p>
+        </header>
+        <div id="discussionList" class="discussion-list"></div>
+        <form id="diskusiForm" class="diskusi-form">
+          <h3>Ajukan Pertanyaan Baru</h3>
+          <textarea id="pertanyaanInput" name="question" rows="4" placeholder="Tulis judul pertanyaan Anda di sini..." required></textarea>
+          <button type="button" id="submitDiscussion" class="btn primary" onclick="addNewDiscussion()">Kirim Pertanyaan</button>
+        </form>
+      </div>
+
+      <div id="discussionDetailView" style="display: none;">
+        <nav><a href="#diskusi" class="back-link">← Kembali ke Semua Diskusi</a></nav>
+        <article>
+          <h2 id="detailTitle"></h2>
+          <div id="detailReplies" class="replies-list"></div>
+        </article>
+        <form id="replyForm" class="diskusi-form">
+          <h3>Tulis Balasan Anda</h3>
+          <textarea id="replyInput" name="reply" rows="5" placeholder="Tulis balasan atau komentar Anda..." required disabled></textarea>
+          <button type="submit" class="btn primary" disabled>Kirim Balasan</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="loginDialog">
+    <form class="dialog-card" id="loginFormElement" onsubmit="doLogin(); return false;">
+      <header><h3>Login ke PhyLab</h3></header>
+      <div class="form-content">
+        <div class="form-group">
+          <label for="username">Nama Pengguna</label>
+          <input type="text" id="username" name="username" placeholder="Masukkan username" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Masukkan password" required autocomplete="current-password" />
+        </div>
+        <div id="loginError" class="error-message" style="display: none;"></div>
+      </div>
+      <menu class="dialog-actions">
+        <button value="cancel" type="button" id="cancelLogin" onclick="document.getElementById('loginDialog').close();">Batal</button>
+        <button id="submitLogin" type="submit" class="primary">Login</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <dialog id="signUpDialog">
+    <form method="dialog" class="dialog-card">
+      <header>
+        <h3>Buat Akun Baru</h3>
+        <p class="ink small white-text">Fitur ini masih belum berfungsi karena melibatkan back-end.</p>
+      </header>
+      <div class="form-content">
+        <div class="form-group">
+          <label for="signup-username">Nama Pengguna</label>
+          <input type="text" id="signup-username" name="username" required autocomplete="username" />
+        </div>
+        <div class="form-group">
+          <label for="signup-email">Email</label>
+          <input type="email" id="signup-email" name="email" required autocomplete="email" />
+        </div>
+      </div>
+      <menu class="dialog-actions">
+        <button value="cancel" type="button" onclick="document.getElementById('signUpDialog').close();">Batal</button>
+        <button value="default" type="submit" class="primary">Sign Up</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <p>© <span id="year">2025</span> PhyLab. Made by Nicho.</p>
+    </div>
+  </footer>
+
+  <script src="app_simple.js" defer></script>
+</body>
+</html>
