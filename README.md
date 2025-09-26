@@ -2,9 +2,9 @@
 
 Virtual lab fisika berbasis web untuk memahami konsep inti fisika melalui simulasi interaktif.
 
-## 🚀 **Fitur Utama**
+## **Fitur Utama**
 
-### 📚 **Materi Fisika Dasar 1A**
+### **Materi Fisika Dasar 1A**
 - Besaran & Satuan
 - Vektor
 - Kinematika  
@@ -13,7 +13,7 @@ Virtual lab fisika berbasis web untuk memahami konsep inti fisika melalui simula
 - Momentum & Tumbukan
 - Dinamika Rotasi
 
-### 🧪 **Mini Lab Simulasi Interaktif**
+### **Mini Lab Simulasi Interaktif**
 1. **Jatuh Bebas & Tumbukan**
    - Simulasi gravitasi real-time
    - Kontrol restitusi dan gesekan udara
@@ -30,14 +30,14 @@ Virtual lab fisika berbasis web untuk memahami konsep inti fisika melalui simula
    - Kontrol panjang tali, massa, dan redaman
    - Visualisasi sudut dan periode
 
-### 💬 **Sistem Diskusi**
+### **Sistem Diskusi**
 - Login/logout sederhana
 - Forum diskusi interaktif
 - Sistem reply dan komentar
 - Mini Lab Interaktif
 
 
-## 🎮 **Cara Menggunakan**
+## **Cara Menggunakan**
 
 ### **Navigasi**
 - Klik menu atau scroll untuk berpindah section
@@ -56,7 +56,7 @@ Virtual lab fisika berbasis web untuk memahami konsep inti fisika melalui simula
 3. Klik topik untuk melihat detail
 4. Gunakan tombol "Kembali" untuk kembali ke list
 
-## 🔧 **Pengaturan**
+## **Pengaturan**
 
 ### **Simulasi Physics**
 - **Jatuh Bebas**: Gravitasi 0-20 m/s², Restitusi 0-1, Gesekan udara 0-0.02
