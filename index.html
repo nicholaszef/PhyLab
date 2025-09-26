@@ -222,31 +222,33 @@
       </div>
     </section>
 
-    <section id="diskusi" class="container diskusi fade-in">
-      <div id="discussionListView">
-        <header class="section-header">
-          <h2>Ruang Diskusi PhyLab</h2>
-          <p class="section-subtitle">Klik sebuah topik untuk melihat detail diskusi atau ajukan pertanyaan baru. Anda harus login untuk berpartisipasi.</p>
-        </header>
-        <div id="discussionList" class="discussion-list"></div>
-        <form id="diskusiForm" class="diskusi-form">
-          <h3>Ajukan Pertanyaan Baru</h3>
-          <textarea id="pertanyaanInput" name="question" rows="4" placeholder="Tulis judul pertanyaan Anda di sini..." required></textarea>
-          <button type="button" id="submitDiscussion" class="btn primary" onclick="addNewDiscussion()">Kirim Pertanyaan</button>
-        </form>
-      </div>
+    <section id="diskusi" class="diskusi fade-in">
+      <div class="container">
+        <div id="discussionListView">
+          <header class="section-header">
+            <h2>Ruang Diskusi PhyLab</h2>
+            <p class="section-subtitle">Klik sebuah topik untuk melihat detail diskusi atau ajukan pertanyaan baru. Anda harus login untuk berpartisipasi.</p>
+          </header>
+          <div id="discussionList" class="discussion-list"></div>
+          <form id="diskusiForm" class="diskusi-form">
+            <h3>Ajukan Pertanyaan Baru</h3>
+            <textarea id="pertanyaanInput" name="question" rows="4" placeholder="Tulis judul pertanyaan Anda di sini..." required></textarea>
+            <button type="button" id="submitDiscussion" class="btn primary" onclick="addNewDiscussion()">Kirim Pertanyaan</button>
+          </form>
+        </div>
 
-      <div id="discussionDetailView" style="display: none;">
-        <nav><a href="#diskusi" class="back-link">← Kembali ke Semua Diskusi</a></nav>
-        <article>
-          <h2 id="detailTitle"></h2>
-          <div id="detailReplies" class="replies-list"></div>
-        </article>
-        <form id="replyForm" class="diskusi-form">
-          <h3>Tulis Balasan Anda</h3>
-          <textarea id="replyInput" name="reply" rows="5" placeholder="Tulis balasan atau komentar Anda..." required disabled></textarea>
-          <button type="submit" class="btn primary" disabled>Kirim Balasan</button>
-        </form>
+        <div id="discussionDetailView" style="display: none;">
+          <nav><a href="#diskusi" class="back-link">← Kembali ke Semua Diskusi</a></nav>
+          <article>
+            <h2 id="detailTitle"></h2>
+            <div id="detailReplies" class="replies-list"></div>
+          </article>
+          <form id="replyForm" class="diskusi-form">
+            <h3>Tulis Balasan Anda</h3>
+            <textarea id="replyInput" name="reply" rows="5" placeholder="Tulis balasan atau komentar Anda..." required disabled></textarea>
+            <button type="submit" class="btn primary" disabled>Kirim Balasan</button>
+          </form>
+        </div>
       </div>
     </section>
   </main>
