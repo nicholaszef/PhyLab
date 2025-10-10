@@ -39,6 +39,7 @@
         <div id="userInfo" class="user-info"></div>
         <button id="loginBtn" class="primary" onclick="document.getElementById('loginDialog').showModal();">Login</button>
         <button id="signUpBtn" class="ghost" onclick="document.getElementById('signUpDialog').showModal();">Sign Up</button>
+        <button id="profileBtn" class="ghost" style="display:none;">Profile</button>
       </div>
     </nav>
   </header>
@@ -71,42 +72,49 @@
           <h3>Besaran & Satuan</h3>
           <p>Dasar-dasar pengukuran dalam fisika.</p>
           <a href="https://youtu.be/1BgEUvpOUqo?si=BoSgiR7Oo23Mhjed" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+          <button class="btn youtube-btn quiz-btn" data-module="mod1" type="button">Mulai Kuis</button>
         </div>
         <div class="materi-card">
           <div class="materi-icon">🧭</div>
           <h3>Vektor</h3>
           <p>Besaran yang memiliki nilai dan arah.</p>
           <a href="https://youtu.be/IDJUvIMdCWA?si=qBf3X7PAdOYRLIDh" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+          <button class="btn youtube-btn quiz-btn" data-module="mod2" type="button">Mulai Kuis</button>
         </div>
         <div class="materi-card">
           <div class="materi-icon">🚗</div>
           <h3>Kinematika</h3>
           <p>Mempelajari gerak tanpa meninjau penyebabnya.</p>
           <a href="https://youtu.be/3J1E4vA-zPg?si=ZtocA1CRvdlchzTm" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+          <button class="btn youtube-btn quiz-btn" data-module="mod3" type="button">Mulai Kuis</button>
         </div>
         <div class="materi-card">
           <div class="materi-icon">🍎</div>
           <h3>Dinamika Partikel</h3>
           <p>Hukum Newton tentang gerak dan gaya.</p>
           <a href="https://youtu.be/Gq5SrlfEpGU?si=zAw2L7PVVSmq56vM" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+          <button class="btn youtube-btn quiz-btn" data-module="mod4" type="button">Mulai Kuis</button>
         </div>
         <div class="materi-card">
           <div class="materi-icon">⚡️</div>
           <h3>Usaha & Energi</h3>
           <p>Konsep kerja, energi kinetik, dan potensial.</p>
           <a href="https://youtu.be/x_JMeoj_RCw?si=KefkVp3TM_PhCjqd" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+          <button class="btn youtube-btn quiz-btn" data-module="mod5" type="button">Mulai Kuis</button>
         </div>
         <div class="materi-card">
           <div class="materi-icon">💥</div>
           <h3>Momentum & Tumbukan</h3>
           <p>Hukum kekekalan momentum linear.</p>
           <a href="https://youtu.be/A9sJYJ_byrg?si=B0SJOKTylzqP-b9Z" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+          <button class="btn youtube-btn quiz-btn" data-module="mod6" type="button">Mulai Kuis</button>
         </div>
         <div class="materi-card">
           <div class="materi-icon">⚙️</div>
           <h3>Dinamika Rotasi</h3>
           <p>Gerak benda yang berputar pada porosnya.</p>
           <a href="https://youtu.be/XiLtmjdDSKM?si=CCfLlTK2swZpYc57" class="btn youtube-btn" target="_blank" rel="noopener">Tonton di YouTube</a>
+          <button class="btn youtube-btn quiz-btn" data-module="mod7" type="button">Mulai Kuis</button>
         </div>
       </div>
     </section>
@@ -258,8 +266,8 @@
       <header><h3>Login ke PhyLab</h3></header>
       <div class="form-content">
         <div class="form-group">
-          <label for="username">Nama Pengguna</label>
-          <input type="text" id="username" name="username" placeholder="Masukkan username" required autocomplete="username" />
+          <label for="username">Email Pengguna</label>
+          <input type="text" id="username" name="username" placeholder="Masukkan email" required autocomplete="username" />
         </div>
         <div class="form-group">
           <label for="password">Password</label>
@@ -292,7 +300,7 @@
       </header>
       <div class="form-content">
         <div class="form-group">
-          <label for="signup-username">Nama (tampil)</label>
+          <label for="signup-username">Nama</label>
           <input type="text" id="signup-username" name="username" required autocomplete="name" />
         </div>
         <div class="form-group">
@@ -320,5 +328,40 @@
   </footer>
 
   <script type="module" src="app_simple.js"></script>
+  <dialog id="profileDialog">
+    <div class="dialog-card">
+      <header><h3>Profil Saya</h3></header>
+      <div class="form-content">
+        <p id="profileUserInfo" class="user-info"></p>
+        <h4>Status Kuis</h4>
+        <div id="quizProgressList">
+        </div>
+      </div>
+      <menu class="dialog-actions">
+        <button type="button" onclick="document.getElementById('profileDialog').close();">Tutup</button>
+      </menu>
+    </div>
+  </dialog>
+
+  <dialog id="quizDialog">
+    <form id="quizForm" class="dialog-card" onsubmit="event.preventDefault();">
+      <header><h3 id="quizTitle">Kuis</h3></header>
+      <div class="form-content">
+        <div id="quizQuestionArea">
+          <p id="quizQuestionText"></p>
+          <div id="quizOptions"></div>
+        </div>
+        <div id="quizProgress" style="margin-top:.75rem; font-size:.95rem; color:var(--muted)"></div>
+        <div id="quizError" class="error-message" style="display:none"></div>
+      </div>
+      <menu class="dialog-actions">
+        <button id="quizPrev" type="button">Sebelumnya</button>
+        <button id="quizNext" type="button" class="primary">Berikutnya</button>
+        <button id="quizSubmit" type="button" class="primary" style="display:none;">Kirim Jawaban</button>
+        <button value="cancel" type="button" onclick="document.getElementById('quizDialog').close();">Batal</button>
+      </menu>
+    </form>
+  </dialog>
+
 </body>
 </html>

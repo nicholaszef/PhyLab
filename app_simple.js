@@ -428,6 +428,238 @@ async function onSimulationFinished(labName, params, results) {
 
 window.phylab_onSimulationFinished = onSimulationFinished;
 
+const QUIZ_DATA = {
+  mod1: {
+    title: "Kuis: Besaran & Satuan",
+    questions: [
+      { q: "Satuan panjang dalam SI adalah ?", opts: ["meter", "cm", "foot", "inch"], a: 0 },
+      { q: "Satuan massa SI adalah ?", opts: ["gram", "kg", "ton", "ounce"], a: 1 }
+    ]
+  },
+  mod2: {
+    title: "Kuis: Vektor",
+    questions: [
+      { q: "Vektor memiliki ...", opts: ["nilai saja", "arah saja", "nilai dan arah", "tidak ada"], a: 2 },
+      { q: "Penjumlahan vektor dilakukan dengan ...", opts: ["aljabar biasa", "metode grafis", "metode numerik", "tidak bisa"], a: 1 }
+    ]
+  },
+  mod3: {
+    title: "Kuis: Kinematika",
+    questions: [
+      { q: "Besaran yang berubah terhadap waktu adalah ...", opts: ["jarak", "percepatan", "massa", "gaya"], a: 1 },
+      { q: "Jika kecepatan konstan maka percepatan ...", opts: ["nol", "positif", "negatif", "tak terhingga"], a: 0 }
+    ]
+  },
+  mod4: {
+    title: "Kuis: Dinamika Partikel",
+    questions: [
+      { q: "Hukum Newton I berkaitan dengan ...", opts: ["inertia", "gaya", "massa", "gerak melingkar"], a: 0 },
+      { q: "Gaya total pada benda = massa × percepatan. Rumus ini milik ...", opts: ["Newton", "Galileo", "Einstein", "Pascal"], a: 0 }
+    ]
+  },
+  mod5: {
+    title: "Kuis: Usaha & Energi",
+    questions: [
+      { q: "Energi kinetik bergantung pada ...", opts: ["kecepatan kuadrat", "jarak", "gaya", "waktu"], a: 0 },
+      { q: "Satuan usaha dalam SI adalah ...", opts: ["Joule", "Watt", "Newton", "Pascal"], a: 0 }
+    ]
+  },
+  mod6: {
+    title: "Kuis: Momentum & Tumbukan",
+    questions: [
+      { q: "Momentum didefinisikan sebagai ...", opts: ["massa × kecepatan", "gaya × waktu", "energi × waktu", "jarak × gaya"], a: 0 },
+      { q: "Pada tumbukan lenting sempurna, energi kinetik ...", opts: ["terkekalkan", "hilang", "bertambah", "tak terdefinisi"], a: 0 }
+    ]
+  },
+  mod7: {
+    title: "Kuis: Dinamika Rotasi",
+    questions: [
+      { q: "Momen inersia bergantung pada ...", opts: ["massa & distribusi", "warna benda", "kecepatan", "gaya"], a: 0 },
+      { q: "Torsi adalah analognya ...", opts: ["gaya linear", "energi", "massa", "waktu"], a: 0 }
+    ]
+  }
+};
+
+let quizState = {
+  moduleId: null,
+  currentIndex: 0,
+  answers: [] // indices
+};
+
+const profileBtn = document.getElementById('profileBtn');
+if (profileBtn) profileBtn.addEventListener('click', () => {
+  const pd = document.getElementById('profileDialog');
+  renderProfileUI();
+  pd.showModal();
+});
+
+function requireLoginThen(actionFn) {
+  const user = auth.currentUser;
+  if (!user) {
+    if (loginDialog) loginDialog.showModal();
+    return false;
+  }
+  return actionFn();
+}
+
+function renderProfileUI() {
+  const user = auth.currentUser;
+  const info = document.getElementById('profileUserInfo');
+  const list = document.getElementById('quizProgressList');
+  if (!info || !list) return;
+  if (!user) {
+    info.textContent = 'Anda belum login.';
+    list.innerHTML = '';
+    return;
+  }
+  info.textContent = `${user.displayName || user.email}`;
+  // load user doc
+  getDoc(doc(db, 'users', user.uid)).then(udoc => {
+    const data = udoc.exists() ? udoc.data() : {};
+    const quizzes = (data.quizzes) || {};
+    list.innerHTML = '';
+    Object.keys(QUIZ_DATA).forEach(mid => {
+      const title = QUIZ_DATA[mid].title;
+      const q = quizzes[mid];
+      const item = document.createElement('div');
+      item.style.padding = '.5rem 0';
+      item.style.borderBottom = '1px dashed color-mix(in srgb, var(--ink) 8%, transparent)';
+      item.innerHTML = `<strong>${title}</strong><div style="font-size:.95rem; color:var(--muted)">${q ? 'Selesai — skor: ' + q.score + ' / ' + q.total + ' ('+ (q.passed ? 'Lulus':'Gagal') +')' : 'Belum selesai'}</div>`;
+      list.appendChild(item);
+    });
+  }).catch(err => {
+    console.error('load profile error', err);
+  });
+}
+
+// wire quiz buttons (delegation)
+document.addEventListener('click', (ev) => {
+  const btn = ev.target.closest && ev.target.closest('.quiz-btn');
+  if (!btn) return;
+  const moduleId = btn.getAttribute('data-module');
+  openQuiz(moduleId);
+});
+
+function openQuiz(moduleId) {
+  const quiz = QUIZ_DATA[moduleId];
+  if (!quiz) return;
+  const user = auth.currentUser;
+  if (!user) {
+    if (loginDialog) loginDialog.showModal();
+    return;
+  }
+  quizState.moduleId = moduleId;
+  quizState.currentIndex = 0;
+  quizState.answers = new Array(quiz.questions.length).fill(null);
+  renderQuiz();
+  const qd = document.getElementById('quizDialog');
+  qd.showModal();
+}
+
+function renderQuiz() {
+  const moduleId = quizState.moduleId;
+  const quiz = QUIZ_DATA[moduleId];
+  const qi = quizState.currentIndex;
+  const qObj = quiz.questions[qi];
+  document.getElementById('quizTitle').textContent = quiz.title + ` (Soal ${qi+1}/${quiz.questions.length})`;
+  document.getElementById('quizQuestionText').textContent = qObj.q;
+  const opts = document.getElementById('quizOptions');
+  opts.innerHTML = '';
+  qObj.opts.forEach((opt, idx) => {
+    const id = `opt_${idx}`;
+    const wrapper = document.createElement('div');
+    wrapper.style.margin = '.5rem 0';
+    wrapper.innerHTML = `<label style="display:flex; gap:.5rem; align-items:center;">
+      <input type="radio" name="quizOpt" value="${idx}" ${quizState.answers[qi] === idx ? 'checked' : ''} /> <span>${opt}</span>
+    </label>`;
+    opts.appendChild(wrapper);
+  });
+  // progress text
+  document.getElementById('quizProgress').textContent = `Jawab soal ${qi+1} dari ${quiz.questions.length}`;
+  // buttons
+  document.getElementById('quizPrev').style.display = qi === 0 ? 'none' : '';
+  document.getElementById('quizNext').style.display = qi === quiz.questions.length -1 ? 'none' : '';
+  document.getElementById('quizSubmit').style.display = qi === quiz.questions.length -1 ? '' : 'none';
+}
+
+document.getElementById('quizPrev')?.addEventListener('click', () => {
+  saveAnswerForCurrent();
+  if (quizState.currentIndex > 0) {
+    quizState.currentIndex--;
+    renderQuiz();
+  }
+});
+document.getElementById('quizNext')?.addEventListener('click', () => {
+  saveAnswerForCurrent();
+  const quiz = QUIZ_DATA[quizState.moduleId];
+  if (quizState.currentIndex < quiz.questions.length -1) {
+    quizState.currentIndex++;
+    renderQuiz();
+  }
+});
+document.getElementById('quizSubmit')?.addEventListener('click', async () => {
+  saveAnswerForCurrent();
+  await submitQuiz();
+  document.getElementById('quizDialog').close();
+});
+
+function saveAnswerForCurrent() {
+  const sel = document.querySelector('input[name="quizOpt"]:checked');
+  const val = sel ? parseInt(sel.value,10) : null;
+  quizState.answers[quizState.currentIndex] = val;
+}
+
+async function submitQuiz() {
+  const moduleId = quizState.moduleId;
+  const quiz = QUIZ_DATA[moduleId];
+  const total = quiz.questions.length;
+  let correct = 0;
+  for (let i=0;i<total;i++){
+    if (quizState.answers[i] === quiz.questions[i].a) correct++;
+  }
+  const score = correct;
+  const passed = (score/total) >= 0.6;
+  const payload = {
+    score,
+    total,
+    passed,
+    finishedAt: new Date().toISOString()
+  };
+  const user = auth.currentUser;
+  if (user) {
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const udoc = await getDoc(userRef);
+      const prev = (udoc.exists() && udoc.data().quizzes) ? udoc.data().quizzes : {};
+      prev[moduleId] = payload;
+      await updateDoc(userRef, {
+        quizzes: prev,
+        lastUpdated: serverTimestamp()
+      });
+    } catch (err) {
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        const obj = {};
+        obj[moduleId] = payload;
+        await setDoc(userRef, { quizzes: obj, lastUpdated: serverTimestamp() }, { merge: true });
+      } catch (e) {
+        console.error('save quiz fallback error', e);
+      }
+    }
+    renderProfileUI();
+  }
+  alert(`Kuis selesai. Skor: ${score}/${total}. ${passed ? 'Selamat, lulus!' : 'Belum lulus, coba lagi.'}`);
+}
+
+onAuthStateChanged(auth, (user) => {
+  const pb = document.getElementById('profileBtn');
+  if (pb) pb.style.display = user && user.emailVerified ? '' : 'none';
+  // also re-render profile if it's open
+  const pDialog = document.getElementById('profileDialog');
+  if (pDialog && pDialog.open) renderProfileUI();
+});
+
+
 function loadUserStateToUI(data) {
     if (!data) return;
     const progress = data.progress || {};
