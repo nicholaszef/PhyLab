@@ -986,10 +986,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     initRanges();
     
-    // Load discussions on page load
     loadDiscussions();
     
-    // Setup discussion event listeners
     const backLink = document.querySelector('.back-link');
     if (backLink) {
         backLink.addEventListener('click', (e) => {
@@ -1003,7 +1001,53 @@ document.addEventListener('DOMContentLoaded', () => {
         replyForm.addEventListener('submit', addReply);
     }
     
-    // Initialize canvases
+    // TAMBAHKAN EVENT LISTENERS UNTUK LOGIN/SIGNUP FORMS
+    if (loginFormElement) {
+        loginFormElement.addEventListener('submit', doLogin);
+    }
+    
+    const submitSignUpBtn = document.getElementById('submitSignUp');
+    if (submitSignUpBtn) {
+        submitSignUpBtn.addEventListener('click', doSignUp);
+    }
+    
+    // Tambahan: Event listener untuk cancel buttons
+    const cancelLogin = document.getElementById('cancelLogin');
+    const cancelSignUp = document.getElementById('cancelSignUp');
+    
+    if (cancelLogin) {
+        cancelLogin.addEventListener('click', () => {
+            loginDialog?.close();
+            loginFormElement?.reset();
+            showError(loginErrorEl, '');
+        });
+    }
+    
+    if (cancelSignUp) {
+        cancelSignUp.addEventListener('click', () => {
+            signUpDialog?.close();
+            signUpForm?.reset();
+            showError(signupErrorEl, '');
+        });
+    }
+    
+    // Close dialogs when clicking outside
+    loginDialog?.addEventListener('click', (e) => {
+        if (e.target === loginDialog) {
+            loginDialog.close();
+            loginFormElement?.reset();
+            showError(loginErrorEl, '');
+        }
+    });
+    
+    signUpDialog?.addEventListener('click', (e) => {
+        if (e.target === signUpDialog) {
+            signUpDialog.close();
+            signUpForm?.reset();
+            showError(signupErrorEl, '');
+        }
+    });
+    
     setTimeout(() => {
         const canvasJF = document.getElementById('labCanvas');
         const canvasP = document.getElementById('proyektilCanvas');
@@ -1023,7 +1067,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 100);
     
-    // Event listeners for controls
     $('play')?.addEventListener('click', startJF);
     $('pause')?.addEventListener('click', pauseJF);
     $('reset')?.addEventListener('click', resetJF);
@@ -1034,7 +1077,6 @@ document.addEventListener('DOMContentLoaded', () => {
     $('playPendulum')?.addEventListener('click', startPend);
     $('resetPendulum')?.addEventListener('click', resetPend);
     
-    // Resize handler
     window.addEventListener('resize', () => {
         const activeCanvas = document.querySelector('.lab-content.active canvas');
         if (activeCanvas) {
@@ -1058,6 +1100,132 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+
+async function doSignUp() {
+  try {
+    const displayName = signUpUsername?.value?.trim() || '';
+    const email = signUpEmail?.value?.trim();
+    const password = signUpPassword?.value;
+    
+    if (!email || !password) {
+      showError(signupErrorEl, 'Email & password wajib.');
+      return;
+    }
+
+    // Reset error message
+    showError(signupErrorEl, '');
+
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+    if (displayName) {
+      await updateProfile(cred.user, { displayName });
+    }
+
+    const uid = cred.user.uid;
+    await setDoc(doc(db, 'users', uid), {
+      displayName,
+      email,
+      createdAt: serverTimestamp(),
+      progress: {},
+      simulations: []
+    });
+
+    await sendEmailVerification(cred.user);
+    await signOut(auth);
+
+    alert('Akun dibuat. Kami sudah mengirim email verifikasi ke ' + email + '. Silakan cek inbox (atau spam). Setelah verifikasi, silakan login lagi.');
+    
+    // Reset form dan tutup dialog
+    signUpForm?.reset();
+    signUpDialog?.close();
+  } catch (err) {
+    console.error('Signup error', err);
+    let errorMessage = 'Gagal membuat akun.';
+    
+    // Handle specific Firebase errors
+    if (err.code === 'auth/email-already-in-use') {
+      errorMessage = 'Email sudah digunakan.';
+    } else if (err.code === 'auth/weak-password') {
+      errorMessage = 'Password terlalu lemah.';
+    } else if (err.code === 'auth/invalid-email') {
+      errorMessage = 'Format email tidak valid.';
+    }
+    
+    showError(signupErrorEl, errorMessage);
+  }
+}
+
+// Perbaiki fungsi doLogin
+async function doLogin(evt) {
+  if (evt && evt.preventDefault) evt.preventDefault();
+  
+  const email = usernameInput?.value?.trim();
+  const password = passwordInput?.value;
+  
+  if (!email || !password) {
+    showError(loginErrorEl, 'Email & password harus diisi');
+    return;
+  }
+
+  // Reset error message
+  showError(loginErrorEl, '');
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const user = cred.user;
+
+    if (!user.emailVerified) {
+      await signOut(auth);
+
+      if (verifyMsg) verifyMsg.textContent = `Akun ${email} belum terverifikasi. Cek inbox (atau spam).`;
+      if (verifyNotice) verifyNotice.style.display = 'block';
+
+      if (resendVerifyBtn) {
+        resendVerifyBtn.onclick = async () => {
+          try {
+            const tempCred = await signInWithEmailAndPassword(auth, email, password);
+            await sendEmailVerification(tempCred.user);
+            await signOut(auth);
+            if (verifyMsg) verifyMsg.textContent = `Email verifikasi sudah dikirim ulang ke ${email}. Cek inbox / spam.`;
+          } catch (err) {
+            console.error('resend verify error', err);
+            if (verifyMsg) verifyMsg.textContent = 'Gagal mengirim ulang verifikasi: ' + (err.message || '');
+          }
+        };
+      }
+      if (dismissVerifyBtn) {
+        dismissVerifyBtn.onclick = () => {
+          if (verifyNotice) verifyNotice.style.display = 'none';
+        };
+      }
+
+      return;
+    }
+
+    // Login berhasil
+    loginFormElement?.reset();
+    loginDialog?.close();
+  } catch (err) {
+    console.error('Login err', err);
+    
+    let errorMessage = 'Gagal login';
+    if (err.code === 'auth/user-not-found') {
+      errorMessage = 'Email tidak terdaftar.';
+    } else if (err.code === 'auth/wrong-password') {
+      errorMessage = 'Password salah.';
+    } else if (err.code === 'auth/invalid-email') {
+      errorMessage = 'Format email tidak valid.';
+    } else if (err.code === 'auth/too-many-requests') {
+      errorMessage = 'Terlalu banyak percobaan. Coba lagi nanti.';
+    }
+    
+    showError(loginErrorEl, errorMessage);
+  }
+}
+
+async function doLogout() {
+    await signOut(auth);
+}
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {

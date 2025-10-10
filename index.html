@@ -261,6 +261,7 @@
     </section>
   </main>
 
+  <!-- Login Dialog -->
   <dialog id="loginDialog">
     <form class="dialog-card" id="loginFormElement">
       <header><h3>Login ke PhyLab</h3></header>
@@ -276,19 +277,20 @@
         <div id="loginError" class="error-message" style="display: none;"></div>
       </div>
       <menu class="dialog-actions">
-        <button value="cancel" type="button" id="cancelLogin">Batal</button>
-        <button id="submitLogin" type="submit" class="primary">Login</button>
+        <button type="button" id="cancelLogin">Batal</button>
+        <button type="submit" class="primary">Login</button>
       </menu>
-      <div id="verifyNotice" style="display:none; margin-top: 0.75rem;">
-        <p id="verifyMsg" class="error-message" style="display:block; background: color-mix(in srgb, #ffdede 8%, transparent); color:#b91c1c; padding:0.5rem; border-radius:6px;">
-          Akun belum terverifikasi. Cek email untuk link verifikasi.
-        </p>
-        <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
-          <button type="button" id="resendVerifyBtn" class="ghost">Kirim Ulang Email Verifikasi</button>
-          <button type="button" id="dismissVerifyBtn" class="ghost">Tutup</button>
+      
+  
+      <div id="verifyNotice" class="verify-notice" style="display: none;">
+        <div class="verify-content">
+          <p id="verifyMsg"></p>
+          <div class="verify-actions">
+            <button type="button" id="resendVerifyBtn" class="primary small">Kirim Ulang</button>
+            <button type="button" id="dismissVerifyBtn" class="ghost small">Tutup</button>
+          </div>
         </div>
       </div>
-
     </form>
   </dialog>
 
@@ -296,7 +298,7 @@
     <form id="signUpForm" class="dialog-card">
       <header>
         <h3>Buat Akun Baru</h3>
-        <p class="ink small white-text">Buat akun untuk menyimpan progress dan hasil simulasi.</p>
+        <p class="muted small white-text">Buat akun untuk menyimpan progress dan hasil simulasi.</p>
       </header>
       <div class="form-content">
         <div class="form-group">
@@ -312,10 +314,11 @@
           <input type="password" id="signup-password" name="password" required autocomplete="new-password" />
         </div>
         <div id="signupError" class="error-message" style="display:none"></div>
+        <p class="muted small white-text">Fitur ini masih belum berfungsi karena melibatkan back-end.</p>
       </div>
       <menu class="dialog-actions">
-        <button value="cancel" type="button" id="cancelSignUp">Batal</button>
-        <button id="submitSignUp" type="button" class="primary">Buat Akun</button>
+        <button type="button" id="cancelSignUp">Batal</button>
+        <button type="button" id="submitSignUp" class="primary">Buat Akun</button>
       </menu>
     </form>
   </dialog>
