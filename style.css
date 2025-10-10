@@ -1006,76 +1006,63 @@ dialog::backdrop {
 }
 
 
-.quiz-section,
-.quiz-section * {
-  color: #fff !important;
-}
-
-.quiz-section label {
-  color: #fff !important;
-}
-
-.quiz-section p,
-.quiz-section h3,
-.quiz-section span {
-  color: #fff !important;
-}
-
-
-.quiz-buttons,
-.quiz-actions,
-.quiz-section .button-group {
+#quizDialog menu.dialog-actions {
   display: flex;
-  justify-content: center;
+  justify-content: center;    
   align-items: center;
-  gap: 10px; 
+  flex-wrap: wrap;          
   margin-top: 20px;
 }
 
-
-.quiz-section button {
+/* tombol kuis */
+#quizDialog button {
+  height: 46px;            
+  font-size: 1rem;           
+  padding: 10px 20px;
+  border-radius: 10px;
   color: #fff !important;
   background-color: #007bff;
   border: none;
-  padding: 10px 18px;
-  border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
   transition: background 0.2s ease, transform 0.1s ease;
+  text-align: center;        
+  white-space: nowrap;     
 }
 
-.quiz-section button:hover {
+#quizDialog button:hover {
   background-color: #3399ff;
   transform: scale(1.05);
 }
 
-.quiz-section form {
-  text-align: center;
+#quizDialog button.primary {
+  background-color: #3b82f6;
 }
 
-.profile-section,
-.profile-section * {
+#quizDialog button.primary:hover {
+  background-color: #60a5fa;
+}
+
+
+#profileDialog,
+#profileDialog * {
   color: #fff !important;
 }
 
-.profile-section h2,
-.profile-section h3,
-.profile-section h4 {
+#profileDialog h3,
+#profileDialog h4 {
   color: #fff !important;
   font-weight: 700;
 }
-.profile-section p,
-.profile-section span,
-.profile-section li,
-.profile-section div {
+
+#profileDialog p,
+#profileDialog div,
+#profileDialog span {
   color: #e0e0e0 !important;
 }
 
-.profile-section hr {
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.profile-section button {
+/* tombol Tutup */
+#profileDialog button {
   color: #fff !important;
   background-color: #007bff;
   border: none;
@@ -1086,7 +1073,7 @@ dialog::backdrop {
   transition: background 0.2s ease, transform 0.1s ease;
 }
 
-.profile-section button:hover {
+#profileDialog button:hover {
   background-color: #3399ff;
   transform: scale(1.05);
 }
