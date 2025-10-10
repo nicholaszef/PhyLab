@@ -79,12 +79,25 @@ const showError = (el, message) => {
 const initTabs = () => {
     const tabBtns = document.querySelectorAll('.tab-btn');
     const labContents = document.querySelectorAll('.lab-content');
+    
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             tabBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const target = btn.dataset.lab;
             labContents.forEach(c => c.classList.toggle('active', c.id === target));
+            
+            // Resize canvas when tab changes
+            setTimeout(() => {
+                const activeCanvas = document.querySelector(`#${target} canvas`);
+                if (activeCanvas) {
+                    resizeCanvas(activeCanvas);
+                    // Redraw based on canvas type
+                    if (activeCanvas.id === 'labCanvas') drawJF();
+                    if (activeCanvas.id === 'proyektilCanvas') drawP();
+                    if (activeCanvas.id === 'pendulumCanvas') drawPend();
+                }
+            }, 100);
         });
     });
 };
@@ -98,39 +111,6 @@ const initRanges = () => {
         });
     });
 };
-
-class SimpleParticles {
-    constructor(canvas) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
-        this.resize();
-        window.addEventListener('resize', () => this.resize());
-    }
-    resize() {
-        this.canvas.width = this.canvas.offsetWidth;
-        this.canvas.height = this.canvas.offsetHeight;
-        if (this.canvas.width < 400) this.canvas.width = 400;
-        if (this.canvas.height < 300) this.canvas.height = 300;
-        this.balls = [
-            { x: 100, y: 50, vx: 2, vy: 0, radius: 10, color: '#60a5fa' },
-            { x: 200, y: 80, vx: -1, vy: 0, radius: 12, color: '#f59e0b' },
-            { x: 300, y: 60, vx: 0.5, vy: 0, radius: 8, color: '#10b981' }
-        ];
-        this.render();
-    }
-    render() {
-        const ctx = this.ctx;
-        const c = this.canvas;
-        ctx.clearRect(0,0,c.width,c.height);
-        this.balls.forEach(b => {
-            ctx.beginPath();
-            ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2);
-            ctx.fillStyle = b.color;
-            ctx.fill();
-        });
-        requestAnimationFrame(() => this.render());
-    }
-}
 
 const addNewDiscussion = () => {
     const qEl = $('pertanyaanInput');
@@ -146,10 +126,400 @@ const addNewDiscussion = () => {
     qEl.value = '';
 };
 
+// Jatuh Bebas Simulation
+let animJF = null;
+let stateJF = {
+    y: 50, vy: 0, radius: 18, g: 9.8, e: 0.8, drag: 0.004, running: false
+};
+
+function resizeCanvas(canvas) {
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    if (canvas.width < 300) canvas.width = 300;
+    if (canvas.height < 200) canvas.height = 200;
+}
+
+function drawJF() {
+    const canvas = document.getElementById('labCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Ground
+    ctx.fillStyle = '#e2e8f044';
+    ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+    
+    // Ball
+    const gradient = ctx.createRadialGradient(
+        canvas.width/2 - 5, stateJF.y - 5, 0,
+        canvas.width/2, stateJF.y, stateJF.radius
+    );
+    gradient.addColorStop(0, '#60a5fa');
+    gradient.addColorStop(1, '#3b82f6');
+    
+    ctx.beginPath();
+    ctx.arc(canvas.width/2, stateJF.y, stateJF.radius, 0, Math.PI*2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.strokeStyle = '#1e40af';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Velocity vector
+    if (Math.abs(stateJF.vy) > 0.1) {
+        ctx.beginPath();
+        ctx.moveTo(canvas.width/2, stateJF.y);
+        ctx.lineTo(canvas.width/2 + 5, stateJF.y + stateJF.vy * 2);
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+}
+
+function stepJF(dt) {
+    const g = parseFloat($('g')?.value || 9.8);
+    const e = parseFloat($('e')?.value || 0.8);
+    const drag = parseFloat($('drag')?.value || 0.004);
+    
+    stateJF.vy += g * dt * 60;
+    stateJF.vy *= (1 - drag);
+    stateJF.y += stateJF.vy * dt;
+    
+    const canvas = document.getElementById('labCanvas');
+    const floor = canvas.height - stateJF.radius - 10;
+    
+    if (stateJF.y >= floor) {
+        stateJF.y = floor;
+        stateJF.vy = -Math.abs(stateJF.vy) * e;
+        if (Math.abs(stateJF.vy) < 1) stateJF.vy = 0;
+    }
+}
+
+function loopJF(timestamp) {
+    if (!loopJF.lastTime) loopJF.lastTime = timestamp;
+    const dt = (timestamp - loopJF.lastTime) / 1000;
+    loopJF.lastTime = timestamp;
+    
+    if (stateJF.running) {
+        stepJF(dt);
+        drawJF();
+        animJF = requestAnimationFrame(loopJF);
+    }
+}
+
+function startJF() {
+    const canvas = document.getElementById('labCanvas');
+    resizeCanvas(canvas);
+    stateJF.y = 50;
+    stateJF.vy = 0;
+    stateJF.running = true;
+    loopJF.lastTime = null;
+    if (animJF) cancelAnimationFrame(animJF);
+    animJF = requestAnimationFrame(loopJF);
+}
+
+function pauseJF() {
+    stateJF.running = false;
+    if (animJF) {
+        cancelAnimationFrame(animJF);
+        animJF = null;
+    }
+}
+
+function resetJF() {
+    pauseJF();
+    stateJF.y = 50;
+    stateJF.vy = 0;
+    drawJF();
+}
+
+// Proyektil Simulation
+let animP = null;
+let stateP = {
+    x: 50, y: 0, vx: 0, vy: 0, running: false, trail: []
+};
+
+function drawP() {
+    const canvas = document.getElementById('proyektilCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Ground
+    ctx.fillStyle = '#e2e8f044';
+    ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+    
+    // Trail
+    if (stateP.trail.length > 1) {
+        ctx.beginPath();
+        ctx.strokeStyle = '#60a5fa66';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < stateP.trail.length - 1; i++) {
+            const p1 = stateP.trail[i];
+            const p2 = stateP.trail[i + 1];
+            if (i === 0) ctx.moveTo(p1.x, canvas.height - p1.y - 10);
+            ctx.lineTo(p2.x, canvas.height - p2.y - 10);
+        }
+        ctx.stroke();
+    }
+    
+    // Projectile
+    const projY = canvas.height - stateP.y - 10;
+    ctx.beginPath();
+    ctx.arc(stateP.x, projY, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff6b35';
+    ctx.fill();
+    ctx.strokeStyle = '#d63031';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Velocity vector
+    if (Math.abs(stateP.vx) > 0.1 || Math.abs(stateP.vy) > 0.1) {
+        ctx.beginPath();
+        ctx.moveTo(stateP.x, projY);
+        ctx.lineTo(stateP.x + stateP.vx * 0.5, projY - stateP.vy * 0.5);
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+}
+
+function stepP(dt) {
+    const g = parseFloat($('g')?.value || 9.8);
+    
+    stateP.vy += g * dt * 30;
+    stateP.x += stateP.vx * dt * 30;
+    stateP.y += stateP.vy * dt * 30;
+    
+    // Add to trail
+    if (stateP.trail.length === 0 || 
+        Math.abs(stateP.x - stateP.trail[stateP.trail.length - 1].x) > 5) {
+        stateP.trail.push({x: stateP.x, y: stateP.y});
+        if (stateP.trail.length > 50) stateP.trail.shift();
+    }
+    
+    const canvas = document.getElementById('proyektilCanvas');
+    if (stateP.y <= 0 || stateP.x > canvas.width + 20) {
+        stateP.running = false;
+    }
+}
+
+function loopP(timestamp) {
+    if (!loopP.lastTime) loopP.lastTime = timestamp;
+    const dt = (timestamp - loopP.lastTime) / 1000;
+    loopP.lastTime = timestamp;
+    
+    if (stateP.running) {
+        stepP(dt);
+        drawP();
+        animP = requestAnimationFrame(loopP);
+    }
+}
+
+function startP() {
+    const canvas = document.getElementById('proyektilCanvas');
+    resizeCanvas(canvas);
+    
+    const speed = parseFloat($('velocityProyektil')?.value || 50);
+    const angleDeg = parseFloat($('angleProyektil')?.value || 45);
+    const height = parseFloat($('heightProyektil')?.value || 0);
+    const angle = angleDeg * Math.PI / 180;
+    
+    stateP.x = 30;
+    stateP.y = height;
+    stateP.vx = speed * Math.cos(angle);
+    stateP.vy = -speed * Math.sin(angle);
+    stateP.running = true;
+    stateP.trail = [];
+    
+    loopP.lastTime = null;
+    if (animP) cancelAnimationFrame(animP);
+    animP = requestAnimationFrame(loopP);
+}
+
+function resetP() {
+    stateP.running = false;
+    stateP.x = 30;
+    stateP.y = 0;
+    stateP.vx = 0;
+    stateP.vy = 0;
+    stateP.trail = [];
+    if (animP) {
+        cancelAnimationFrame(animP);
+        animP = null;
+    }
+    drawP();
+}
+
+// Pendulum Simulation
+let animPend = null;
+let statePend = {
+    theta: 0.5, omega: 0, length: 1.5, running: false
+};
+
+function drawPend() {
+    const canvas = document.getElementById('pendulumCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const cx = canvas.width / 2;
+    const cy = 50;
+    const L = statePend.length * 80;
+    const x = cx + L * Math.sin(statePend.theta);
+    const y = cy + L * Math.cos(statePend.theta);
+    
+    // Pivot point
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#6b7280';
+    ctx.fill();
+    
+    // String
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Bob
+    const mass = parseFloat($('massPendulum')?.value || 1);
+    const radius = Math.max(8, Math.min(20, mass * 8));
+    
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#10b981';
+    ctx.fill();
+    ctx.strokeStyle = '#059669';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Velocity indicator
+    if (Math.abs(statePend.omega) > 0.01) {
+        const vx = statePend.omega * L * Math.cos(statePend.theta) * 10;
+        const vy = -statePend.omega * L * Math.sin(statePend.theta) * 10;
+        
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + vx, y + vy);
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+    }
+}
+
+function stepPend(dt) {
+    const g = parseFloat($('g')?.value || 9.8);
+    const L = parseFloat($('lengthPendulum')?.value || 1.5);
+    const damping = parseFloat($('dampingPendulum')?.value || 0.02);
+    
+    const alpha = -(g / L) * Math.sin(statePend.theta) - damping * statePend.omega;
+    statePend.omega += alpha * dt;
+    statePend.theta += statePend.omega * dt;
+}
+
+function loopPend(timestamp) {
+    if (!loopPend.lastTime) loopPend.lastTime = timestamp;
+    const dt = (timestamp - loopPend.lastTime) / 1000;
+    loopPend.lastTime = timestamp;
+    
+    if (statePend.running) {
+        stepPend(dt);
+        drawPend();
+        animPend = requestAnimationFrame(loopPend);
+    }
+}
+
+function startPend() {
+    const canvas = document.getElementById('pendulumCanvas');
+    resizeCanvas(canvas);
+    
+    statePend.length = parseFloat($('lengthPendulum')?.value || 1.5);
+    statePend.running = true;
+    
+    loopPend.lastTime = null;
+    if (animPend) cancelAnimationFrame(animPend);
+    animPend = requestAnimationFrame(loopPend);
+}
+
+function resetPend() {
+    statePend.running = false;
+    statePend.theta = 0.5;
+    statePend.omega = 0;
+    if (animPend) {
+        cancelAnimationFrame(animPend);
+        animPend = null;
+    }
+    drawPend();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     setupNavAndMobile();
     initTabs();
     initRanges();
+    
+    // Initialize canvases
+    setTimeout(() => {
+        const canvasJF = document.getElementById('labCanvas');
+        const canvasP = document.getElementById('proyektilCanvas');
+        const canvasPend = document.getElementById('pendulumCanvas');
+        
+        if (canvasJF) {
+            resizeCanvas(canvasJF);
+            drawJF();
+        }
+        if (canvasP) {
+            resizeCanvas(canvasP);
+            drawP();
+        }
+        if (canvasPend) {
+            resizeCanvas(canvasPend);
+            drawPend();
+        }
+    }, 100);
+    
+    // Event listeners for controls
+    $('play')?.addEventListener('click', startJF);
+    $('pause')?.addEventListener('click', pauseJF);
+    $('reset')?.addEventListener('click', resetJF);
+    
+    $('playProyektil')?.addEventListener('click', startP);
+    $('resetProyektil')?.addEventListener('click', resetP);
+    
+    $('playPendulum')?.addEventListener('click', startPend);
+    $('resetPendulum')?.addEventListener('click', resetPend);
+    
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            const activeTab = document.querySelector('.tab-btn.active');
+            if (activeTab) {
+                const lab = activeTab.dataset.lab;
+                if (lab === 'jatuh-bebas') {
+                    stateJF.running ? pauseJF() : startJF();
+                } else if (lab === 'proyektil') {
+                    stateP.running ? resetP() : startP();
+                } else if (lab === 'pendulum') {
+                    statePend.running ? resetPend() : startPend();
+                }
+            }
+        }
+    });
+    
+    // Resize handler
+    window.addEventListener('resize', () => {
+        const activeCanvas = document.querySelector('.lab-content.active canvas');
+        if (activeCanvas) {
+            resizeCanvas(activeCanvas);
+            if (activeCanvas.id === 'labCanvas') drawJF();
+            if (activeCanvas.id === 'proyektilCanvas') drawP();
+            if (activeCanvas.id === 'pendulumCanvas') drawPend();
+        }
+    });
     
     const observerOptions = { threshold: 0.15 };
     const observer = new IntersectionObserver((entries) => {
@@ -166,23 +536,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const loginDialog = document.getElementById('loginDialog');
 const signUpDialog = document.getElementById('signUpDialog');
-
 const loginFormElement = document.getElementById('loginFormElement');
 const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
 const loginErrorEl = document.getElementById('loginError');
-
 const signUpForm = document.getElementById('signUpForm');
 const signUpUsername = document.getElementById('signup-username');
 const signUpEmail = document.getElementById('signup-email');
 const signUpPassword = document.getElementById('signup-password');
 const signupErrorEl = document.getElementById('signupError');
-
 const loginBtn = document.getElementById('loginBtn');
 const signUpBtn = document.getElementById('signUpBtn');
 let logoutBtn = document.getElementById('logoutBtn');
 const userInfoEl = document.getElementById('userInfo');
-
 const verifyNotice = document.getElementById('verifyNotice');
 const verifyMsg = document.getElementById('verifyMsg');
 const resendVerifyBtn = document.getElementById('resendVerifyBtn');
@@ -379,286 +745,6 @@ async function appendSimulationResult(uid, simResult) {
         }
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    setupNavAndMobile();
-    initTabs();
-    initRanges();
-
-    if (loginFormElement) {
-        loginFormElement.onsubmit = doLogin;
-    }
-
-    const submitSignUpBtn = document.getElementById('submitSignUp');
-    if (submitSignUpBtn) {
-        submitSignUpBtn.addEventListener('click', doSignUp);
-    } else {
-        if (signUpForm) {
-            signUpForm.addEventListener('submit', (ev) => {
-                ev.preventDefault();
-                doSignUp();
-            });
-        }
-    }
-
-    const playBtn = document.getElementById('play');
-    playBtn?.addEventListener('click', async () => {
-        const user = auth.currentUser;
-        const settings = {
-            g: document.getElementById('g')?.value,
-            e: document.getElementById('e')?.value,
-            drag: document.getElementById('drag')?.value
-        };
-        if (user) await saveUserProgress(user.uid, { lastLab: 'jatuh-bebas', settings });
-        if (typeof startJatuhBebasSimulation === 'function') startJatuhBebasSimulation();
-    });
-});
-
-async function onSimulationFinished(labName, params, results) {
-    const user = auth.currentUser;
-    const simPayload = {
-        lab: labName,
-        params,
-        results,
-        finishedAt: new Date().toISOString()
-    };
-    if (user) await appendSimulationResult(user.uid, simPayload);
-    console.log('Simulation finished (saved if logged):', simPayload);
-}
-
-window.phylab_onSimulationFinished = onSimulationFinished;
-
-const QUIZ_DATA = {
-  mod1: {
-    title: "Kuis: Besaran & Satuan",
-    questions: [
-      { q: "Satuan panjang dalam SI adalah ?", opts: ["meter", "cm", "foot", "inch"], a: 0 },
-      { q: "Satuan massa SI adalah ?", opts: ["gram", "kg", "ton", "ounce"], a: 1 }
-    ]
-  },
-  mod2: {
-    title: "Kuis: Vektor",
-    questions: [
-      { q: "Vektor memiliki ...", opts: ["nilai saja", "arah saja", "nilai dan arah", "tidak ada"], a: 2 },
-      { q: "Penjumlahan vektor dilakukan dengan ...", opts: ["aljabar biasa", "metode grafis", "metode numerik", "tidak bisa"], a: 1 }
-    ]
-  },
-  mod3: {
-    title: "Kuis: Kinematika",
-    questions: [
-      { q: "Besaran yang berubah terhadap waktu adalah ...", opts: ["jarak", "percepatan", "massa", "gaya"], a: 1 },
-      { q: "Jika kecepatan konstan maka percepatan ...", opts: ["nol", "positif", "negatif", "tak terhingga"], a: 0 }
-    ]
-  },
-  mod4: {
-    title: "Kuis: Dinamika Partikel",
-    questions: [
-      { q: "Hukum Newton I berkaitan dengan ...", opts: ["inertia", "gaya", "massa", "gerak melingkar"], a: 0 },
-      { q: "Gaya total pada benda = massa × percepatan. Rumus ini milik ...", opts: ["Newton", "Galileo", "Einstein", "Pascal"], a: 0 }
-    ]
-  },
-  mod5: {
-    title: "Kuis: Usaha & Energi",
-    questions: [
-      { q: "Energi kinetik bergantung pada ...", opts: ["kecepatan kuadrat", "jarak", "gaya", "waktu"], a: 0 },
-      { q: "Satuan usaha dalam SI adalah ...", opts: ["Joule", "Watt", "Newton", "Pascal"], a: 0 }
-    ]
-  },
-  mod6: {
-    title: "Kuis: Momentum & Tumbukan",
-    questions: [
-      { q: "Momentum didefinisikan sebagai ...", opts: ["massa × kecepatan", "gaya × waktu", "energi × waktu", "jarak × gaya"], a: 0 },
-      { q: "Pada tumbukan lenting sempurna, energi kinetik ...", opts: ["terkekalkan", "hilang", "bertambah", "tak terdefinisi"], a: 0 }
-    ]
-  },
-  mod7: {
-    title: "Kuis: Dinamika Rotasi",
-    questions: [
-      { q: "Momen inersia bergantung pada ...", opts: ["massa & distribusi", "warna benda", "kecepatan", "gaya"], a: 0 },
-      { q: "Torsi adalah analognya ...", opts: ["gaya linear", "energi", "massa", "waktu"], a: 0 }
-    ]
-  }
-};
-
-let quizState = {
-  moduleId: null,
-  currentIndex: 0,
-  answers: [] // indices
-};
-
-const profileBtn = document.getElementById('profileBtn');
-if (profileBtn) profileBtn.addEventListener('click', () => {
-  const pd = document.getElementById('profileDialog');
-  renderProfileUI();
-  pd.showModal();
-});
-
-function requireLoginThen(actionFn) {
-  const user = auth.currentUser;
-  if (!user) {
-    if (loginDialog) loginDialog.showModal();
-    return false;
-  }
-  return actionFn();
-}
-
-function renderProfileUI() {
-  const user = auth.currentUser;
-  const info = document.getElementById('profileUserInfo');
-  const list = document.getElementById('quizProgressList');
-  if (!info || !list) return;
-  if (!user) {
-    info.textContent = 'Anda belum login.';
-    list.innerHTML = '';
-    return;
-  }
-  info.textContent = `${user.displayName || user.email}`;
-  // load user doc
-  getDoc(doc(db, 'users', user.uid)).then(udoc => {
-    const data = udoc.exists() ? udoc.data() : {};
-    const quizzes = (data.quizzes) || {};
-    list.innerHTML = '';
-    Object.keys(QUIZ_DATA).forEach(mid => {
-      const title = QUIZ_DATA[mid].title;
-      const q = quizzes[mid];
-      const item = document.createElement('div');
-      item.style.padding = '.5rem 0';
-      item.style.borderBottom = '1px dashed color-mix(in srgb, var(--ink) 8%, transparent)';
-      item.innerHTML = `<strong>${title}</strong><div style="font-size:.95rem; color:var(--muted)">${q ? 'Selesai — skor: ' + q.score + ' / ' + q.total + ' ('+ (q.passed ? 'Lulus':'Gagal') +')' : 'Belum selesai'}</div>`;
-      list.appendChild(item);
-    });
-  }).catch(err => {
-    console.error('load profile error', err);
-  });
-}
-
-// wire quiz buttons (delegation)
-document.addEventListener('click', (ev) => {
-  const btn = ev.target.closest && ev.target.closest('.quiz-btn');
-  if (!btn) return;
-  const moduleId = btn.getAttribute('data-module');
-  openQuiz(moduleId);
-});
-
-function openQuiz(moduleId) {
-  const quiz = QUIZ_DATA[moduleId];
-  if (!quiz) return;
-  const user = auth.currentUser;
-  if (!user) {
-    if (loginDialog) loginDialog.showModal();
-    return;
-  }
-  quizState.moduleId = moduleId;
-  quizState.currentIndex = 0;
-  quizState.answers = new Array(quiz.questions.length).fill(null);
-  renderQuiz();
-  const qd = document.getElementById('quizDialog');
-  qd.showModal();
-}
-
-function renderQuiz() {
-  const moduleId = quizState.moduleId;
-  const quiz = QUIZ_DATA[moduleId];
-  const qi = quizState.currentIndex;
-  const qObj = quiz.questions[qi];
-  document.getElementById('quizTitle').textContent = quiz.title + ` (Soal ${qi+1}/${quiz.questions.length})`;
-  document.getElementById('quizQuestionText').textContent = qObj.q;
-  const opts = document.getElementById('quizOptions');
-  opts.innerHTML = '';
-  qObj.opts.forEach((opt, idx) => {
-    const id = `opt_${idx}`;
-    const wrapper = document.createElement('div');
-    wrapper.style.margin = '.5rem 0';
-    wrapper.innerHTML = `<label style="display:flex; gap:.5rem; align-items:center;">
-      <input type="radio" name="quizOpt" value="${idx}" ${quizState.answers[qi] === idx ? 'checked' : ''} /> <span>${opt}</span>
-    </label>`;
-    opts.appendChild(wrapper);
-  });
-  // progress text
-  document.getElementById('quizProgress').textContent = `Jawab soal ${qi+1} dari ${quiz.questions.length}`;
-  // buttons
-  document.getElementById('quizPrev').style.display = qi === 0 ? 'none' : '';
-  document.getElementById('quizNext').style.display = qi === quiz.questions.length -1 ? 'none' : '';
-  document.getElementById('quizSubmit').style.display = qi === quiz.questions.length -1 ? '' : 'none';
-}
-
-document.getElementById('quizPrev')?.addEventListener('click', () => {
-  saveAnswerForCurrent();
-  if (quizState.currentIndex > 0) {
-    quizState.currentIndex--;
-    renderQuiz();
-  }
-});
-document.getElementById('quizNext')?.addEventListener('click', () => {
-  saveAnswerForCurrent();
-  const quiz = QUIZ_DATA[quizState.moduleId];
-  if (quizState.currentIndex < quiz.questions.length -1) {
-    quizState.currentIndex++;
-    renderQuiz();
-  }
-});
-document.getElementById('quizSubmit')?.addEventListener('click', async () => {
-  saveAnswerForCurrent();
-  await submitQuiz();
-  document.getElementById('quizDialog').close();
-});
-
-function saveAnswerForCurrent() {
-  const sel = document.querySelector('input[name="quizOpt"]:checked');
-  const val = sel ? parseInt(sel.value,10) : null;
-  quizState.answers[quizState.currentIndex] = val;
-}
-
-async function submitQuiz() {
-  const moduleId = quizState.moduleId;
-  const quiz = QUIZ_DATA[moduleId];
-  const total = quiz.questions.length;
-  let correct = 0;
-  for (let i=0;i<total;i++){
-    if (quizState.answers[i] === quiz.questions[i].a) correct++;
-  }
-  const score = correct;
-  const passed = (score/total) >= 0.6;
-  const payload = {
-    score,
-    total,
-    passed,
-    finishedAt: new Date().toISOString()
-  };
-  const user = auth.currentUser;
-  if (user) {
-    try {
-      const userRef = doc(db, 'users', user.uid);
-      const udoc = await getDoc(userRef);
-      const prev = (udoc.exists() && udoc.data().quizzes) ? udoc.data().quizzes : {};
-      prev[moduleId] = payload;
-      await updateDoc(userRef, {
-        quizzes: prev,
-        lastUpdated: serverTimestamp()
-      });
-    } catch (err) {
-      try {
-        const userRef = doc(db, 'users', user.uid);
-        const obj = {};
-        obj[moduleId] = payload;
-        await setDoc(userRef, { quizzes: obj, lastUpdated: serverTimestamp() }, { merge: true });
-      } catch (e) {
-        console.error('save quiz fallback error', e);
-      }
-    }
-    renderProfileUI();
-  }
-  alert(`Kuis selesai. Skor: ${score}/${total}. ${passed ? 'Selamat, lulus!' : 'Belum lulus, coba lagi.'}`);
-}
-
-onAuthStateChanged(auth, (user) => {
-  const pb = document.getElementById('profileBtn');
-  if (pb) pb.style.display = user && user.emailVerified ? '' : 'none';
-  // also re-render profile if it's open
-  const pDialog = document.getElementById('profileDialog');
-  if (pDialog && pDialog.open) renderProfileUI();
-});
-
 
 function loadUserStateToUI(data) {
     if (!data) return;
