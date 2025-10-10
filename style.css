@@ -1004,58 +1004,35 @@ dialog::backdrop {
     animation: none;
   }
 }
-/* === QUIZ SECTION FIX (UPDATED BY CHATGPT) === */
 
-.quiz-section, .quiz-container, .quiz-content, .quiz-question, .quiz-option, .quiz-result {
+
+.quiz-section,
+.quiz-section * {
   color: #fff !important;
 }
 
-/* container kuis biar gak flat */
-.quiz-container {
-  background-color: rgba(0, 0, 0, 0.5);
-  border-radius: 16px;
-  padding: 20px;
+.quiz-section label {
+  color: #fff !important;
+}
+
+.quiz-section p,
+.quiz-section h3,
+.quiz-section span {
+  color: #fff !important;
+}
+
+
+.quiz-buttons,
+.quiz-actions,
+.quiz-section .button-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px; 
   margin-top: 20px;
-  backdrop-filter: blur(6px);
 }
 
-/* soal kuis */
-.quiz-question {
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #fff !important;
-}
 
-/* pilihan jawaban */
-.quiz-option {
-  display: block;
-  margin-bottom: 10px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  border-radius: 10px;
-  padding: 10px 14px;
-  color: #fff !important;
-  transition: background 0.2s ease, transform 0.1s ease;
-  cursor: pointer;
-}
-
-.quiz-option:hover {
-  background: rgba(255, 255, 255, 0.25);
-  transform: scale(1.02);
-}
-
-/* hasil kuis */
-.quiz-result {
-  font-size: 1.1rem;
-  font-weight: bold;
-  text-align: center;
-  margin-top: 15px;
-  color: #fff !important;
-}
-
-/* tombol kuis */
-.quiz button,
 .quiz-section button {
   color: #fff !important;
   background-color: #007bff;
@@ -1065,16 +1042,51 @@ dialog::backdrop {
   cursor: pointer;
   font-weight: 600;
   transition: background 0.2s ease, transform 0.1s ease;
-  display: inline-block;
 }
 
-.quiz button:hover,
 .quiz-section button:hover {
   background-color: #3399ff;
   transform: scale(1.05);
 }
 
-/* pastikan tombol di tengah */
-.quiz-section {
+.quiz-section form {
   text-align: center;
+}
+
+.profile-section,
+.profile-section * {
+  color: #fff !important;
+}
+
+.profile-section h2,
+.profile-section h3,
+.profile-section h4 {
+  color: #fff !important;
+  font-weight: 700;
+}
+.profile-section p,
+.profile-section span,
+.profile-section li,
+.profile-section div {
+  color: #e0e0e0 !important;
+}
+
+.profile-section hr {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.profile-section button {
+  color: #fff !important;
+  background-color: #007bff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.profile-section button:hover {
+  background-color: #3399ff;
+  transform: scale(1.05);
 }
