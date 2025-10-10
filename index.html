@@ -271,6 +271,16 @@
         <button value="cancel" type="button" id="cancelLogin" onclick="document.getElementById('loginDialog').close();">Batal</button>
         <button id="submitLogin" type="submit" class="primary">Login</button>
       </menu>
+      <div id="verifyNotice" style="display:none; margin-top: 0.75rem;">
+        <p id="verifyMsg" class="error-message" style="display:block; background: color-mix(in srgb, #ffdede 8%, transparent); color:#b91c1c; padding:0.5rem; border-radius:6px;">
+          Akun belum terverifikasi. Cek email untuk link verifikasi.
+        </p>
+        <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+          <button type="button" id="resendVerifyBtn" class="ghost">Kirim Ulang Email Verifikasi</button>
+          <button type="button" id="dismissVerifyBtn" class="ghost">Tutup</button>
+        </div>
+      </div>
+
     </form>
   </dialog>
 

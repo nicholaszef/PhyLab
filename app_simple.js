@@ -1,4 +1,3 @@
-// ---------- FIREBASE (MODULAR) ----------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import {
   getAuth,
@@ -6,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  sendEmailVerification,
   updateProfile
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import {
@@ -183,6 +183,11 @@ const signUpBtn = document.getElementById('signUpBtn');
 let logoutBtn = document.getElementById('logoutBtn');
 const userInfoEl = document.getElementById('userInfo');
 
+const verifyNotice = document.getElementById('verifyNotice');
+const verifyMsg = document.getElementById('verifyMsg');
+const resendVerifyBtn = document.getElementById('resendVerifyBtn');
+const dismissVerifyBtn = document.getElementById('dismissVerifyBtn');
+
 if (!logoutBtn) {
     const btn = document.createElement('button');
     btn.id = 'logoutBtn';
@@ -204,52 +209,90 @@ logoutBtn?.addEventListener('click', async () => {
 });
 
 async function doSignUp() {
-    try {
-        const displayName = signUpUsername?.value?.trim() || '';
-        const email = signUpEmail?.value?.trim();
-        const password = signUpPassword?.value;
-        if (!email || !password) {
-            showError(signupErrorEl, 'Email & password wajib.');
-            return;
-        }
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
-        if (displayName) {
-            await updateProfile(cred.user, { displayName });
-        }
-        const uid = cred.user.uid;
-        await setDoc(doc(db, 'users', uid), {
-            displayName,
-            email,
-            createdAt: serverTimestamp(),
-            progress: {},
-            simulations: []
-        });
-        showError(signupErrorEl, '');
-        alert('Akun berhasil dibuat. Silakan login.');
-        signUpDialog?.close();
-    } catch (err) {
-        console.error('Signup error', err);
-        showError(signupErrorEl, err.message || 'Gagal membuat akun.');
+  try {
+    const displayName = signUpUsername?.value?.trim() || '';
+    const email = signUpEmail?.value?.trim();
+    const password = signUpPassword?.value;
+    if (!email || !password) {
+      showError(signupErrorEl, 'Email & password wajib.');
+      return;
     }
+
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+    if (displayName) {
+      await updateProfile(cred.user, { displayName });
+    }
+
+    const uid = cred.user.uid;
+    await setDoc(doc(db, 'users', uid), {
+      displayName,
+      email,
+      createdAt: serverTimestamp(),
+      progress: {},
+      simulations: []
+    });
+
+    await sendEmailVerification(cred.user);
+    await signOut(auth);
+
+    showError(signupErrorEl, '');
+    alert('Akun dibuat. Kami sudah mengirim email verifikasi ke ' + email + '. Silakan cek inbox (atau spam). Setelah verifikasi, silakan login lagi.');
+    signUpDialog?.close();
+  } catch (err) {
+    console.error('Signup error', err);
+    showError(signupErrorEl, err.message || 'Gagal membuat akun.');
+  }
 }
 
 async function doLogin(evt) {
-    if (evt && evt.preventDefault) evt.preventDefault();
-    const email = usernameInput?.value?.trim();
-    const password = passwordInput?.value;
-    if (!email || !password) {
-        showError(loginErrorEl, 'Email & password harus diisi');
-        return;
+  if (evt && evt.preventDefault) evt.preventDefault();
+  const email = usernameInput?.value?.trim();
+  const password = passwordInput?.value;
+  if (!email || !password) {
+    showError(loginErrorEl, 'Email & password harus diisi');
+    return;
+  }
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const user = cred.user;
+
+    if (!user.emailVerified) {
+      await signOut(auth);
+
+      if (verifyMsg) verifyMsg.textContent = `Akun ${email} belum terverifikasi. Cek inbox (atau spam).`;
+      if (verifyNotice) verifyNotice.style.display = 'block';
+
+      if (resendVerifyBtn) {
+        resendVerifyBtn.onclick = async () => {
+          try {
+            const tempCred = await signInWithEmailAndPassword(auth, email, password);
+            await sendEmailVerification(tempCred.user);
+            await signOut(auth);
+            if (verifyMsg) verifyMsg.textContent = `Email verifikasi sudah dikirim ulang ke ${email}. Cek inbox / spam.`;
+          } catch (err) {
+            console.error('resend verify error', err);
+            if (verifyMsg) verifyMsg.textContent = 'Gagal mengirim ulang verifikasi: ' + (err.message || '');
+          }
+        };
+      }
+      if (dismissVerifyBtn) {
+        dismissVerifyBtn.onclick = () => {
+          if (verifyNotice) verifyNotice.style.display = 'none';
+        };
+      }
+
+      return;
     }
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-        showError(loginErrorEl, '');
-        loginDialog?.close();
-        loginFormElement?.reset();
-    } catch (err) {
-        console.error('Login err', err);
-        showError(loginErrorEl, err.message || 'Gagal login');
-    }
+
+    showError(loginErrorEl, '');
+    loginDialog?.close();
+    loginFormElement?.reset();
+  } catch (err) {
+    console.error('Login err', err);
+    showError(loginErrorEl, err.message || 'Gagal login');
+  }
 }
 
 async function doLogout() {
@@ -258,6 +301,13 @@ async function doLogout() {
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
+        if (!user.emailVerified) {
+            userInfoEl.textContent = '';
+            loginBtn.style.display = '';
+            signUpBtn.style.display = '';
+            logoutBtn.style.display = 'none';
+            return;
+        }
         const nameOrEmail = user.displayName || user.email || 'User';
         userInfoEl.textContent = `Halo, ${nameOrEmail}`;
         loginBtn.style.display = 'none';
@@ -398,4 +448,3 @@ function loadUserStateToUI(data) {
         });
     }
 }
-
