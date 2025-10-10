@@ -275,27 +275,33 @@
   </dialog>
 
   <dialog id="signUpDialog">
-    <form method="dialog" class="dialog-card">
+    <form id="signUpForm" class="dialog-card" onsubmit="event.preventDefault();">
       <header>
         <h3>Buat Akun Baru</h3>
-        <p class="ink small white-text">Fitur ini masih belum berfungsi karena melibatkan back-end.</p>
+        <p class="ink small white-text">Buat akun untuk menyimpan progress dan hasil simulasi.</p>
       </header>
       <div class="form-content">
         <div class="form-group">
-          <label for="signup-username">Nama Pengguna</label>
-          <input type="text" id="signup-username" name="username" required autocomplete="username" />
+          <label for="signup-username">Nama (tampil)</label>
+          <input type="text" id="signup-username" name="username" required autocomplete="name" />
         </div>
         <div class="form-group">
           <label for="signup-email">Email</label>
           <input type="email" id="signup-email" name="email" required autocomplete="email" />
         </div>
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" name="password" required autocomplete="new-password" />
+        </div>
+        <div id="signupError" class="error-message" style="display:none"></div>
       </div>
       <menu class="dialog-actions">
         <button value="cancel" type="button" onclick="document.getElementById('signUpDialog').close();">Batal</button>
-        <button value="default" type="submit" class="primary">Sign Up</button>
+        <button id="submitSignUp" type="button" class="primary">Buat Akun</button>
       </menu>
     </form>
   </dialog>
+
 
   <footer class="site-footer">
     <div class="container footer-content">
@@ -303,6 +309,6 @@
     </div>
   </footer>
 
-  <script src="app_simple.js" defer></script>
+  <script type="module" src="app_simple.js"></script>
 </body>
 </html>
