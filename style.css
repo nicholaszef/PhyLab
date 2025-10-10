@@ -1077,3 +1077,22 @@ dialog::backdrop {
   background-color: #3399ff;
   transform: scale(1.05);
 }
+
+#quizDialog input[type="radio"] {
+  accent-color: #60a5fa;
+}
+
+#quizDialog label,
+#quizDialog label span {
+  color: #fff !important;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+#quizDialog input[type="radio"] + span {
+  color: #fff !important;
+}
+
+#quizDialog #quizOptions div {
+  color: #fff !important;
+}
