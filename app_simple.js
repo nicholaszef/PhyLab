@@ -10,12 +10,18 @@ import {
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import {
   getFirestore,
+  collection,
   doc,
   setDoc,
   getDoc,
+  getDocs,
+  addDoc,
   updateDoc,
   arrayUnion,
-  serverTimestamp
+  serverTimestamp,
+  orderBy,
+  query,
+  limit
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -36,6 +42,7 @@ const db = getFirestore(firebaseApp);
 
 let isLoggedIn = false;
 let currentUser = '';
+let discussionData = [];
 
 const $ = (id) => document.getElementById(id);
 const $$ = (selector) => document.querySelectorAll(selector);
@@ -112,19 +119,7 @@ const initRanges = () => {
     });
 };
 
-const addNewDiscussion = () => {
-    const qEl = $('pertanyaanInput');
-    const listEl = $('discussionList');
-    const replyForm = $('replyForm');
-    if (!qEl || !listEl) return;
-    const val = qEl.value.trim();
-    if (!val) return alert('Tulis pertanyaan dulu.');
-    const item = document.createElement('div');
-    item.className = 'diskusi-item';
-    item.innerHTML = `<h3>${val}</h3><p class="muted">oleh ${currentUser || 'Anon'}</p>`;
-    listEl.prepend(item);
-    qEl.value = '';
-};
+document.getElementById('submitSignUp')?.addEventListener('click', doSignUp);
 
 // Jatuh Bebas Simulation
 let animJF = null;
@@ -456,84 +451,6 @@ function resetPend() {
     drawPend();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    setupNavAndMobile();
-    initTabs();
-    initRanges();
-    
-    // Initialize canvases
-    setTimeout(() => {
-        const canvasJF = document.getElementById('labCanvas');
-        const canvasP = document.getElementById('proyektilCanvas');
-        const canvasPend = document.getElementById('pendulumCanvas');
-        
-        if (canvasJF) {
-            resizeCanvas(canvasJF);
-            drawJF();
-        }
-        if (canvasP) {
-            resizeCanvas(canvasP);
-            drawP();
-        }
-        if (canvasPend) {
-            resizeCanvas(canvasPend);
-            drawPend();
-        }
-    }, 100);
-    
-    // Event listeners for controls
-    $('play')?.addEventListener('click', startJF);
-    $('pause')?.addEventListener('click', pauseJF);
-    $('reset')?.addEventListener('click', resetJF);
-    
-    $('playProyektil')?.addEventListener('click', startP);
-    $('resetProyektil')?.addEventListener('click', resetP);
-    
-    $('playPendulum')?.addEventListener('click', startPend);
-    $('resetPendulum')?.addEventListener('click', resetPend);
-    
-    // Keyboard controls
-    document.addEventListener('keydown', (e) => {
-        if (e.code === 'Space') {
-            e.preventDefault();
-            const activeTab = document.querySelector('.tab-btn.active');
-            if (activeTab) {
-                const lab = activeTab.dataset.lab;
-                if (lab === 'jatuh-bebas') {
-                    stateJF.running ? pauseJF() : startJF();
-                } else if (lab === 'proyektil') {
-                    stateP.running ? resetP() : startP();
-                } else if (lab === 'pendulum') {
-                    statePend.running ? resetPend() : startPend();
-                }
-            }
-        }
-    });
-    
-    // Resize handler
-    window.addEventListener('resize', () => {
-        const activeCanvas = document.querySelector('.lab-content.active canvas');
-        if (activeCanvas) {
-            resizeCanvas(activeCanvas);
-            if (activeCanvas.id === 'labCanvas') drawJF();
-            if (activeCanvas.id === 'proyektilCanvas') drawP();
-            if (activeCanvas.id === 'pendulumCanvas') drawPend();
-        }
-    });
-    
-    const observerOptions = { threshold: 0.15 };
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
-            }
-        });
-    }, observerOptions);
-    document.querySelectorAll('.fade-in').forEach(section => {
-        observer.observe(section);
-    });
-});
-
 const loginDialog = document.getElementById('loginDialog');
 const signUpDialog = document.getElementById('signUpDialog');
 const loginFormElement = document.getElementById('loginFormElement');
@@ -574,15 +491,20 @@ logoutBtn?.addEventListener('click', async () => {
     }
 });
 
+// Perbaiki fungsi doSignUp
 async function doSignUp() {
   try {
     const displayName = signUpUsername?.value?.trim() || '';
     const email = signUpEmail?.value?.trim();
     const password = signUpPassword?.value;
+    
     if (!email || !password) {
       showError(signupErrorEl, 'Email & password wajib.');
       return;
     }
+
+    // Reset error message
+    showError(signupErrorEl, '');
 
     const cred = await createUserWithEmailAndPassword(auth, email, password);
 
@@ -602,23 +524,42 @@ async function doSignUp() {
     await sendEmailVerification(cred.user);
     await signOut(auth);
 
-    showError(signupErrorEl, '');
     alert('Akun dibuat. Kami sudah mengirim email verifikasi ke ' + email + '. Silakan cek inbox (atau spam). Setelah verifikasi, silakan login lagi.');
+    
+    // Reset form dan tutup dialog
+    signUpForm?.reset();
     signUpDialog?.close();
   } catch (err) {
     console.error('Signup error', err);
-    showError(signupErrorEl, err.message || 'Gagal membuat akun.');
+    let errorMessage = 'Gagal membuat akun.';
+    
+    // Handle specific Firebase errors
+    if (err.code === 'auth/email-already-in-use') {
+      errorMessage = 'Email sudah digunakan.';
+    } else if (err.code === 'auth/weak-password') {
+      errorMessage = 'Password terlalu lemah.';
+    } else if (err.code === 'auth/invalid-email') {
+      errorMessage = 'Format email tidak valid.';
+    }
+    
+    showError(signupErrorEl, errorMessage);
   }
 }
 
+// Perbaiki fungsi doLogin
 async function doLogin(evt) {
   if (evt && evt.preventDefault) evt.preventDefault();
+  
   const email = usernameInput?.value?.trim();
   const password = passwordInput?.value;
+  
   if (!email || !password) {
     showError(loginErrorEl, 'Email & password harus diisi');
     return;
   }
+
+  // Reset error message
+  showError(loginErrorEl, '');
 
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
@@ -652,12 +593,24 @@ async function doLogin(evt) {
       return;
     }
 
-    showError(loginErrorEl, '');
-    loginDialog?.close();
+    // Login berhasil
     loginFormElement?.reset();
+    loginDialog?.close();
   } catch (err) {
     console.error('Login err', err);
-    showError(loginErrorEl, err.message || 'Gagal login');
+    
+    let errorMessage = 'Gagal login';
+    if (err.code === 'auth/user-not-found') {
+      errorMessage = 'Email tidak terdaftar.';
+    } else if (err.code === 'auth/wrong-password') {
+      errorMessage = 'Password salah.';
+    } else if (err.code === 'auth/invalid-email') {
+      errorMessage = 'Format email tidak valid.';
+    } else if (err.code === 'auth/too-many-requests') {
+      errorMessage = 'Terlalu banyak percobaan. Coba lagi nanti.';
+    }
+    
+    showError(loginErrorEl, errorMessage);
   }
 }
 
@@ -665,15 +618,23 @@ async function doLogout() {
     await signOut(auth);
 }
 
+// Perbaiki onAuthStateChanged untuk update currentUser
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         if (!user.emailVerified) {
+            currentUser = '';
+            isLoggedIn = false;
             userInfoEl.textContent = '';
             loginBtn.style.display = '';
             signUpBtn.style.display = '';
             logoutBtn.style.display = 'none';
             return;
         }
+        
+        // Update currentUser dan isLoggedIn
+        currentUser = user.displayName || user.email || 'User';
+        isLoggedIn = true;
+        
         const nameOrEmail = user.displayName || user.email || 'User';
         userInfoEl.textContent = `Halo, ${nameOrEmail}`;
         loginBtn.style.display = 'none';
@@ -699,6 +660,9 @@ onAuthStateChanged(auth, async (user) => {
             console.error('Error loading user doc', err);
         }
     } else {
+        // User logout
+        currentUser = '';
+        isLoggedIn = false;
         userInfoEl.textContent = '';
         loginBtn.style.display = '';
         signUpBtn.style.display = '';
@@ -766,3 +730,401 @@ function loadUserStateToUI(data) {
         });
     }
 }
+
+// Fungsi untuk load diskusi dari database
+async function loadDiscussions() {
+    try {
+        const discussionsRef = collection(db, 'discussions');
+        const q = query(discussionsRef, orderBy('createdAt', 'desc'), limit(20));
+        const querySnapshot = await getDocs(q);
+        
+        discussionData = [];
+        querySnapshot.forEach((doc) => {
+            discussionData.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        renderDiscussionList();
+    } catch (error) {
+        console.error('Error loading discussions:', error);
+        // Fallback ke data dummy jika gagal load dari database
+        discussionData = [
+            {
+                id: 'dummy1',
+                title: 'Bagaimana cara menghitung percepatan pada gerak lurus berubah beraturan?',
+                author: 'Mahasiswa A',
+                createdAt: { seconds: Date.now() / 1000 - 86400 },
+                replies: []
+            },
+            {
+                id: 'dummy2', 
+                title: 'Apa perbedaan antara kecepatan dan percepatan?',
+                author: 'Mahasiswa B',
+                createdAt: { seconds: Date.now() / 1000 - 172800 },
+                replies: []
+            }
+        ];
+        renderDiscussionList();
+    }
+}
+
+// Fungsi untuk render daftar diskusi
+function renderDiscussionList() {
+    const listEl = $('discussionList');
+    if (!listEl) return;
+    
+    if (discussionData.length === 0) {
+        listEl.innerHTML = '<p class="muted" style="text-align: center; padding: 2rem;">Belum ada diskusi. Mulai diskusi pertama!</p>';
+        return;
+    }
+    
+    listEl.innerHTML = discussionData.map(discussion => {
+        const createdDate = discussion.createdAt?.seconds 
+            ? new Date(discussion.createdAt.seconds * 1000).toLocaleDateString('id-ID')
+            : 'Baru saja';
+        const replyCount = discussion.replies?.length || 0;
+        
+        return `
+            <div class="diskusi-item" onclick="showDiscussionDetail('${discussion.id}')">
+                <h3>${discussion.title}</h3>
+                <div class="diskusi-meta">
+                    <span class="muted">oleh ${discussion.author}</span>
+                    <span class="muted"> • ${createdDate}</span>
+                    <span class="muted"> • 💬 ${replyCount} balasan</span>
+                </div>
+                <div class="diskusi-hint">Klik untuk berdiskusi →</div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Fungsi untuk menampilkan detail diskusi
+function showDiscussionDetail(discussionId) {
+    const discussion = discussionData.find(d => d.id === discussionId);
+    if (!discussion) return;
+    
+    const listView = $('discussionListView');
+    const detailView = $('discussionDetailView');
+    const detailTitle = $('detailTitle');
+    const detailReplies = $('detailReplies');
+    
+    if (!listView || !detailView || !detailTitle || !detailReplies) return;
+    
+    // Hide list, show detail
+    listView.style.display = 'none';
+    detailView.style.display = 'block';
+    
+    // Set title
+    detailTitle.textContent = discussion.title;
+    
+    // Render replies
+    const replies = discussion.replies || [];
+    if (replies.length === 0) {
+        detailReplies.innerHTML = '<p class="muted" style="text-align: center; padding: 1rem;">Belum ada balasan. Jadilah yang pertama!</p>';
+    } else {
+        detailReplies.innerHTML = replies.map((reply, index) => {
+            const replyDate = reply.createdAt?.seconds 
+                ? new Date(reply.createdAt.seconds * 1000).toLocaleDateString('id-ID')
+                : 'Baru saja';
+            return `
+                <div class="reply-item">
+                    <div class="reply-header">
+                        <strong>${reply.author}</strong>
+                        <span class="muted"> • ${replyDate}</span>
+                    </div>
+                    <div class="reply-content">${reply.content}</div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Store current discussion ID for replies
+    detailView.dataset.discussionId = discussionId;
+}
+
+// Fungsi untuk kembali ke daftar diskusi
+function showDiscussionList() {
+    const listView = $('discussionListView');
+    const detailView = $('discussionDetailView');
+    
+    if (listView && detailView) {
+        listView.style.display = 'block';
+        detailView.style.display = 'none';
+    }
+}
+
+// Perbaiki fungsi addNewDiscussion untuk menyimpan ke database
+const addNewDiscussion = async () => {
+    const qEl = $('pertanyaanInput');
+    
+    if (!qEl) return;
+    
+    if (!isLoggedIn) {
+        alert('Anda harus login terlebih dahulu untuk berpartisipasi dalam diskusi.');
+        return;
+    }
+    
+    const val = qEl.value.trim();
+    if (!val) {
+        alert('Tulis pertanyaan dulu.');
+        return;
+    }
+    
+    try {
+        // Save to database
+        const discussionRef = await addDoc(collection(db, 'discussions'), {
+            title: val,
+            author: currentUser,
+            authorId: auth.currentUser?.uid || '',
+            createdAt: serverTimestamp(),
+            replies: []
+        });
+        
+        // Add to local data
+        const newDiscussion = {
+            id: discussionRef.id,
+            title: val,
+            author: currentUser,
+            authorId: auth.currentUser?.uid || '',
+            createdAt: { seconds: Date.now() / 1000 },
+            replies: []
+        };
+        
+        discussionData.unshift(newDiscussion);
+        renderDiscussionList();
+        
+        qEl.value = '';
+        alert('Pertanyaan berhasil ditambahkan!');
+        
+    } catch (error) {
+        console.error('Error adding discussion:', error);
+        alert('Gagal menambahkan pertanyaan. Coba lagi.');
+    }
+};
+
+// Fungsi untuk menambah balasan
+const addReply = async (evt) => {
+    if (evt && evt.preventDefault) evt.preventDefault();
+    
+    const replyInput = $('replyInput');
+    const detailView = $('discussionDetailView');
+    
+    if (!replyInput || !detailView) return;
+    
+    if (!isLoggedIn) {
+        alert('Anda harus login untuk membalas diskusi.');
+        return;
+    }
+    
+    const content = replyInput.value.trim();
+    if (!content) {
+        alert('Tulis balasan dulu.');
+        return;
+    }
+    
+    const discussionId = detailView.dataset.discussionId;
+    if (!discussionId) return;
+    
+    try {
+        const newReply = {
+            content: content,
+            author: currentUser,
+            authorId: auth.currentUser?.uid || '',
+            createdAt: serverTimestamp()
+        };
+        
+        // Update database
+        const discussionRef = doc(db, 'discussions', discussionId);
+        await updateDoc(discussionRef, {
+            replies: arrayUnion(newReply)
+        });
+        
+        // Update local data
+        const discussion = discussionData.find(d => d.id === discussionId);
+        if (discussion) {
+            if (!discussion.replies) discussion.replies = [];
+            discussion.replies.push({
+                ...newReply,
+                createdAt: { seconds: Date.now() / 1000 }
+            });
+        }
+        
+        // Refresh detail view
+        showDiscussionDetail(discussionId);
+        
+        replyInput.value = '';
+        alert('Balasan berhasil ditambahkan!');
+        
+    } catch (error) {
+        console.error('Error adding reply:', error);
+        alert('Gagal menambahkan balasan. Coba lagi.');
+    }
+};
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+        e.preventDefault();
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+            const lab = activeTab.dataset.lab;
+            if (lab === 'jatuh-bebas') {
+                stateJF.running ? pauseJF() : startJF();
+            } else if (lab === 'proyektil') {
+                stateP.running ? resetP() : startP();
+            } else if (lab === 'pendulum') {
+                statePend.running ? resetPend() : startPend();
+            }
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    setupNavAndMobile();
+    initTabs();
+    initRanges();
+    
+    // Load discussions on page load
+    loadDiscussions();
+    
+    // Setup discussion event listeners
+    const backLink = document.querySelector('.back-link');
+    if (backLink) {
+        backLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showDiscussionList();
+        });
+    }
+    
+    const replyForm = $('replyForm');
+    if (replyForm) {
+        replyForm.addEventListener('submit', addReply);
+    }
+    
+    // Initialize canvases
+    setTimeout(() => {
+        const canvasJF = document.getElementById('labCanvas');
+        const canvasP = document.getElementById('proyektilCanvas');
+        const canvasPend = document.getElementById('pendulumCanvas');
+        
+        if (canvasJF) {
+            resizeCanvas(canvasJF);
+            drawJF();
+        }
+        if (canvasP) {
+            resizeCanvas(canvasP);
+            drawP();
+        }
+        if (canvasPend) {
+            resizeCanvas(canvasPend);
+            drawPend();
+        }
+    }, 100);
+    
+    // Event listeners for controls
+    $('play')?.addEventListener('click', startJF);
+    $('pause')?.addEventListener('click', pauseJF);
+    $('reset')?.addEventListener('click', resetJF);
+    
+    $('playProyektil')?.addEventListener('click', startP);
+    $('resetProyektil')?.addEventListener('click', resetP);
+    
+    $('playPendulum')?.addEventListener('click', startPend);
+    $('resetPendulum')?.addEventListener('click', resetPend);
+    
+    // Resize handler
+    window.addEventListener('resize', () => {
+        const activeCanvas = document.querySelector('.lab-content.active canvas');
+        if (activeCanvas) {
+            resizeCanvas(activeCanvas);
+            if (activeCanvas.id === 'labCanvas') drawJF();
+            if (activeCanvas.id === 'proyektilCanvas') drawP();
+            if (activeCanvas.id === 'pendulumCanvas') drawPend();
+        }
+    });
+    
+    const observerOptions = { threshold: 0.15 };
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+            }
+        });
+    }, observerOptions);
+    document.querySelectorAll('.fade-in').forEach(section => {
+        observer.observe(section);
+    });
+});
+
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        if (!user.emailVerified) {
+            currentUser = '';
+            isLoggedIn = false;
+            userInfoEl.textContent = '';
+            loginBtn.style.display = '';
+            signUpBtn.style.display = '';
+            logoutBtn.style.display = 'none';
+            return;
+        }
+        
+        currentUser = user.displayName || user.email || 'User';
+        isLoggedIn = true;
+        
+        const nameOrEmail = user.displayName || user.email || 'User';
+        userInfoEl.textContent = `Halo, ${nameOrEmail}`;
+        loginBtn.style.display = 'none';
+        signUpBtn.style.display = 'none';
+        logoutBtn.style.display = '';
+        
+        const replyInput = $('replyInput');
+        const replySubmitBtn = document.querySelector('#replyForm button[type="submit"]');
+        if (replyInput) replyInput.disabled = false;
+        if (replySubmitBtn) replySubmitBtn.disabled = false;
+
+        try {
+            const udoc = await getDoc(doc(db, 'users', user.uid));
+            if (udoc.exists()) {
+                const data = udoc.data();
+                console.log('user doc loaded', data);
+                loadUserStateToUI(data);
+            } else {
+                await setDoc(doc(db, 'users', user.uid), {
+                    displayName: user.displayName || '',
+                    email: user.email || '',
+                    createdAt: serverTimestamp(),
+                    progress: {},
+                    simulations: []
+                });
+            }
+        } catch (err) {
+            console.error('Error loading user doc', err);
+        }
+        
+
+        loadDiscussions();
+        
+    } else {
+        currentUser = '';
+        isLoggedIn = false;
+        userInfoEl.textContent = '';
+        loginBtn.style.display = '';
+        signUpBtn.style.display = '';
+        logoutBtn.style.display = 'none';
+        
+
+        const replyInput = $('replyInput');
+        const replySubmitBtn = document.querySelector('#replyForm button[type="submit"]');
+        if (replyInput) replyInput.disabled = true;
+        if (replySubmitBtn) replySubmitBtn.disabled = true;
+        
+        loadDiscussions();
+    }
+});
+
+window.addNewDiscussion = addNewDiscussion;
+window.showDiscussionDetail = showDiscussionDetail;
+window.showDiscussionList = showDiscussionList;

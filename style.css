@@ -1044,3 +1044,39 @@ dialog, .dialog-card, #quizDialog, #profileDialog, #quizForm,
 }
 .quiz-btn { width: 100%; max-width: 200px; margin-top: .5rem; }
 .materi-card, .materi-card h3, .materi-card p { color: #ffffff; }
+
+.diskusi-meta {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-sm);
+}
+
+.diskusi-hint {
+  margin-top: var(--space-s);
+  font-size: var(--font-size-sm);
+  color: var(--brand);
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.diskusi-item:hover .diskusi-hint {
+  opacity: 1;
+}
+
+.reply-item {
+  padding: var(--space-m);
+  background: var(--paper);
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-m);
+}
+
+.reply-header {
+  margin-bottom: var(--space-s);
+  padding-bottom: var(--space-xs);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
+.reply-content {
+  line-height: 1.6;
+  color: var(--ink);
+}
