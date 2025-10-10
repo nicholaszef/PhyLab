@@ -147,22 +147,51 @@ const addNewDiscussion = () => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    setupNavAndMobile();
-    initTabs();
-    initRanges();
-    
-    const observerOptions = { threshold: 0.15 };
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
-            }
-        });
-    }, observerOptions);
-    document.querySelectorAll('.fade-in').forEach(section => {
-        observer.observe(section);
+  setupNavAndMobile();
+  initTabs();
+  initRanges();
+
+  if (loginFormElement) loginFormElement.onsubmit = doLogin;
+  const submitSignUpBtn = document.getElementById('submitSignUp');
+  if (submitSignUpBtn) {
+    submitSignUpBtn.addEventListener('click', doSignUp);
+  } else if (signUpForm) {
+    signUpForm.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      doSignUp();
     });
+  }
+
+  const playBtn = document.getElementById('play');
+  playBtn?.addEventListener('click', async () => {
+    const user = auth.currentUser;
+    const settings = {
+      g: document.getElementById('g')?.value,
+      e: document.getElementById('e')?.value,
+      drag: document.getElementById('drag')?.value
+    };
+    if (user) await saveUserProgress(user.uid, { lastLab: 'jatuh-bebas', settings });
+    if (typeof startJatuhBebasSimulation === 'function') startJatuhBebasSimulation();
+  });
+
+  document.getElementById('playProyektil')?.addEventListener('click', startProyektilSimulation);
+  document.getElementById('playPendulum')?.addEventListener('click', startPendulumSimulation);
+
+  listenToDiscussions();
+  discussionForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    addNewDiscussionToDB();
+  });
+
+  const observerOptions = { threshold: 0.15 };
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('fade-in');
+    });
+  }, observerOptions);
+  document.querySelectorAll('.fade-in').forEach(section => observer.observe(section));
 });
+
 
 const loginDialog = document.getElementById('loginDialog');
 const signUpDialog = document.getElementById('signUpDialog');
@@ -379,40 +408,6 @@ async function appendSimulationResult(uid, simResult) {
         }
     }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    setupNavAndMobile();
-    initTabs();
-    initRanges();
-
-    if (loginFormElement) {
-        loginFormElement.onsubmit = doLogin;
-    }
-
-    const submitSignUpBtn = document.getElementById('submitSignUp');
-    if (submitSignUpBtn) {
-        submitSignUpBtn.addEventListener('click', doSignUp);
-    } else {
-        if (signUpForm) {
-            signUpForm.addEventListener('submit', (ev) => {
-                ev.preventDefault();
-                doSignUp();
-            });
-        }
-    }
-
-    const playBtn = document.getElementById('play');
-    playBtn?.addEventListener('click', async () => {
-        const user = auth.currentUser;
-        const settings = {
-            g: document.getElementById('g')?.value,
-            e: document.getElementById('e')?.value,
-            drag: document.getElementById('drag')?.value
-        };
-        if (user) await saveUserProgress(user.uid, { lastLab: 'jatuh-bebas', settings });
-        if (typeof startJatuhBebasSimulation === 'function') startJatuhBebasSimulation();
-    });
-});
 
 async function onSimulationFinished(labName, params, results) {
     const user = auth.currentUser;
@@ -877,3 +872,126 @@ function startPendulumSimulation() {
 
   animate();
 }
+
+import { 
+  collection, addDoc, onSnapshot, query, orderBy, serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+// === DISKUSI REALTIME FIRESTORE ===
+
+// referensi ke elemen HTML
+const discussionList = document.getElementById('discussionList');
+const discussionForm = document.getElementById('diskusiForm');
+const discussionInput = document.getElementById('pertanyaanInput');
+const discussionDetailView = document.getElementById('discussionDetailView');
+const discussionListView = document.getElementById('discussionListView');
+const detailTitle = document.getElementById('detailTitle');
+const detailReplies = document.getElementById('detailReplies');
+const replyForm = document.getElementById('replyForm');
+const replyInput = document.getElementById('replyInput');
+
+// === listen realtime semua diskusi ===
+function listenToDiscussions() {
+  const q = query(collection(db, "discussions"), orderBy("createdAt", "desc"));
+  onSnapshot(q, (snapshot) => {
+    if (!discussionList) return;
+    discussionList.innerHTML = '';
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const item = document.createElement('div');
+      item.className = 'diskusi-item';
+      item.innerHTML = `
+        <h3>${data.title}</h3>
+        <p class="muted">oleh ${data.authorName || 'Anon'} · ${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ''}</p>
+      `;
+      item.onclick = () => openDiscussion(docSnap.id, data);
+      discussionList.appendChild(item);
+    });
+  });
+}
+
+// === kirim pertanyaan baru ===
+async function addNewDiscussionToDB() {
+  const user = auth.currentUser;
+  if (!user) {
+    if (loginDialog) loginDialog.showModal();
+    return;
+  }
+  const val = discussionInput.value.trim();
+  if (!val) return alert('Tulis pertanyaan dulu.');
+
+  const payload = {
+    title: val,
+    authorUid: user.uid,
+    authorName: user.displayName || user.email || 'User',
+    createdAt: serverTimestamp()
+  };
+
+  await addDoc(collection(db, "discussions"), payload);
+  discussionInput.value = '';
+}
+
+// === buka detail diskusi ===
+function openDiscussion(id, data) {
+  if (!discussionDetailView || !discussionListView) return;
+  discussionListView.style.display = 'none';
+  discussionDetailView.style.display = 'block';
+  detailTitle.textContent = data.title;
+  loadReplies(id);
+  replyForm.onsubmit = (e) => {
+    e.preventDefault();
+    sendReply(id);
+  };
+}
+
+// === load balasan realtime ===
+function loadReplies(discussionId) {
+  const q = query(collection(db, "discussions", discussionId, "replies"), orderBy("createdAt", "asc"));
+  onSnapshot(q, (snapshot) => {
+    if (!detailReplies) return;
+    detailReplies.innerHTML = '';
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      const div = document.createElement('div');
+      div.className = 'reply-item';
+      div.style.marginBottom = '0.75rem';
+      div.innerHTML = `
+        <strong>${data.authorName || 'User'}:</strong> ${data.text}
+        <p class="muted" style="font-size:.85rem;">${data.createdAt?.toDate ? data.createdAt.toDate().toLocaleString() : ''}</p>
+      `;
+      detailReplies.appendChild(div);
+    });
+  });
+}
+
+// === kirim balasan ===
+async function sendReply(discussionId) {
+  const user = auth.currentUser;
+  if (!user) {
+    if (loginDialog) loginDialog.showModal();
+    return;
+  }
+  const text = replyInput.value.trim();
+  if (!text) return;
+  const payload = {
+    text,
+    authorUid: user.uid,
+    authorName: user.displayName || user.email || 'User',
+    createdAt: serverTimestamp()
+  };
+  await addDoc(collection(db, "discussions", discussionId, "replies"), payload);
+  replyInput.value = '';
+}
+
+// === tombol kembali dari detail ke list ===
+document.querySelector('.back-link')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  discussionListView.style.display = 'block';
+  discussionDetailView.style.display = 'none';
+});
+
+// === event submit form pertanyaan ===
+discussionForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  addNewDiscussionToDB();
+});
