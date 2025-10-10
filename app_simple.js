@@ -15,7 +15,12 @@ import {
   getDoc,
   updateDoc,
   arrayUnion,
-  serverTimestamp
+  serverTimestamp,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -873,11 +878,6 @@ function startPendulumSimulation() {
   animate();
 }
 
-import { 
-  collection, addDoc, onSnapshot, query, orderBy, serverTimestamp 
-} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-// === DISKUSI REALTIME FIRESTORE ===
 
 // referensi ke elemen HTML
 const discussionList = document.getElementById('discussionList');
@@ -990,8 +990,36 @@ document.querySelector('.back-link')?.addEventListener('click', (e) => {
   discussionDetailView.style.display = 'none';
 });
 
-// === event submit form pertanyaan ===
-discussionForm?.addEventListener('submit', (e) => {
-  e.preventDefault();
-  addNewDiscussionToDB();
+document.addEventListener('DOMContentLoaded', () => {
+  const discussionList = document.getElementById('discussionList');
+  const discussionForm = document.getElementById('diskusiForm');
+  const discussionInput = document.getElementById('pertanyaanInput');
+  const replyForm = document.getElementById('replyForm');
+  const replyInput = document.getElementById('replyInput');
+
+  // jalankan listener realtime
+  listenToDiscussions();
+
+  // kirim pertanyaan baru
+  discussionForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    addNewDiscussionToDB();
+  });
+
+  // tombol kembali ke list
+  document.querySelector('.back-link')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('discussionListView').style.display = 'block';
+    document.getElementById('discussionDetailView').style.display = 'none';
+  });
 });
+
+function ensureCanvasSize(id, minW = 400, minH = 300) {
+  const c = document.getElementById(id);
+  if (!c) return;
+  const w = Math.max(c.offsetWidth || 600, minW);
+  const h = Math.max(c.offsetHeight || 400, minH);
+  c.width = w;
+  c.height = h;
+}
+
