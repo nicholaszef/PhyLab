@@ -262,7 +262,7 @@
   </main>
 
   <dialog id="loginDialog">
-    <form class="dialog-card" id="loginFormElement" onsubmit="doLogin(); return false;">
+    <form class="dialog-card" id="loginFormElement">
       <header><h3>Login ke PhyLab</h3></header>
       <div class="form-content">
         <div class="form-group">
@@ -315,7 +315,7 @@
       </div>
       <menu class="dialog-actions">
         <button value="cancel" type="button" onclick="document.getElementById('signUpDialog').close();">Batal</button>
-        <button id="submitSignUp" type="button" class="primary">Buat Akun</button>
+        <button id="submitSignUp" type="submit" class="primary">Buat Akun</button>
       </menu>
     </form>
   </dialog>
@@ -327,7 +327,6 @@
     </div>
   </footer>
 
-  <script type="module" src="app_simple.js"></script>
   <dialog id="profileDialog">
     <div class="dialog-card">
       <header><h3>Profil Saya</h3></header>
@@ -362,6 +361,6 @@
       </menu>
     </form>
   </dialog>
-
+  <script type="module" src="app.js"></script>
 </body>
 </html>
