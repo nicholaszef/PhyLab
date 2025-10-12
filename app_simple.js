@@ -342,6 +342,7 @@ onAuthStateChanged(auth, async (user) => {
             logoutBtn.style.display = 'none';
             return;
         }
+        listenToDiscussions();
         const nameOrEmail = user.displayName || user.email || 'User';
         userInfoEl.textContent = `Halo, ${nameOrEmail}`;
         loginBtn.style.display = 'none';
@@ -910,7 +911,6 @@ function listenToDiscussions() {
   });
 }
 
-// === kirim pertanyaan baru ===
 async function addNewDiscussionToDB() {
   const user = auth.currentUser;
   if (!user) {
@@ -927,8 +927,14 @@ async function addNewDiscussionToDB() {
     createdAt: serverTimestamp()
   };
 
-  await addDoc(collection(db, "discussions"), payload);
-  discussionInput.value = '';
+  try {
+    await addDoc(collection(db, "discussions"), payload);
+    console.log("Pertanyaan berhasil dikirim:", payload);
+    discussionInput.value = '';
+  } catch (err) {
+    console.error("Gagal kirim pertanyaan:", err);
+    alert("Gagal mengirim pertanyaan. Coba lagi nanti.");
+  }
 }
 
 // === buka detail diskusi ===
