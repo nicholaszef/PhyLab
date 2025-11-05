@@ -1096,3 +1096,24 @@ dialog::backdrop {
 #quizDialog #quizOptions div {
   color: #fff !important;
 }
+
+#quizDialog,
+#quizDialog * {
+  color: #ffffff !important;
+}
+
+#quizQuestionText {
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+#quizDialog label,
+#quizDialog label span {
+  color: #ffffff !important;
+}
+
+#quizDialog #quizOptions div,
+#quizDialog #quizProgress,
+#quizDialog #quizTitle {
+  color: #ffffff !important;
+}
