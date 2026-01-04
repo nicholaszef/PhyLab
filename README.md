@@ -1,64 +1,95 @@
-# PhyLab — Virtual Lab Fisika Interaktif
+# PhyLab - Platform Pembelajaran Fisika Interaktif
 
-Virtual lab fisika berbasis web untuk memahami konsep inti fisika melalui simulasi interaktif.
+Aplikasi pembelajaran fisika interaktif dengan simulasi lab virtual untuk mahasiswa TPB
 
-## **Fitur Utama**
+## Struktur Folder
 
-### **Materi Fisika Dasar 1A**
-- Besaran & Satuan
-- Vektor
-- Kinematika  
-- Dinamika Partikel
-- Usaha & Energi
-- Momentum & Tumbukan
-- Dinamika Rotasi
+```
+PhyLab/
+├── web/                    # Web Application
+│   ├── index.html          # Main HTML file
+│   ├── css/
+│   │   └── style.css       # Stylesheet
+│   ├── js/
+│   │   ├── config.js       # Firebase configuration
+│   │   ├── data.js         # Quiz & materi data
+│   │   ├── firebase.js     # Firebase services
+│   │   ├── simulations.js  # Canvas simulations
+│   │   └── app.js          # Main application logic
+│   └── assets/
+│       └── logo.png        # App logo
+│
+└── mobile/                 # React Native (Expo) App
+    ├── app/                # Expo Router screens
+    │   ├── _layout.tsx     # Tab navigation
+    │   ├── index.tsx       # Home screen
+    │   ├── materi.tsx      # Materi & quiz
+    │   ├── lab.tsx         # Virtual lab
+    │   ├── diskusi.tsx     # Discussion forum
+    │   └── profil.tsx      # User profile
+    ├── src/
+    │   ├── constants/      # App constants
+    │   ├── services/       # Firebase services
+    │   └── components/     # Reusable components
+    ├── assets/             # Images & icons
+    ├── app.json            # Expo config
+    ├── package.json        # Dependencies
+    └── tsconfig.json       # TypeScript config
+```
 
-### **Mini Lab Simulasi Interaktif**
-1. **Jatuh Bebas & Tumbukan**
-   - Simulasi gravitasi real-time
-   - Kontrol restitusi dan gesekan udara
-   - Visualisasi energi dan momentum
+## Fitur
 
-2. **Gerak Proyektil**
-   - Simulasi kinematika 2D
-   - Prediksi lintasan
-   - Kontrol kecepatan, sudut, dan ketinggian
-   - Range maksimal 150 m/s
+- **Materi Pembelajaran** - 7 modul fisika dengan video YouTube
+- **Kuis Interaktif** - Evaluasi pemahaman tiap modul
+- **Mini Lab** - Simulasi virtual (jatuh bebas, gerak proyektil, pendulum)
+- **Forum Diskusi** - Tanya jawab antar pengguna
+- **Autentikasi** - Login dengan email verification
 
-3. **Pendulum Sederhana**
-   - Simulasi osilasi harmonis
-   - Kontrol panjang tali, massa, dan redaman
-   - Visualisasi sudut dan periode
+## Web Development
 
-### **Sistem Diskusi**
-- Login/logout sederhana
-- Forum diskusi interaktif
-- Sistem reply dan komentar
-- Mini Lab Interaktif
+### Run Locally
+```bash
+cd web
+npx serve .
+```
+Buka http://localhost:3000 di browser.
 
+## Mobile Development
 
-## **Cara Menggunakan**
+### Installation
+```bash
+cd mobile
+npm install
+```
 
-### **Navigasi**
-- Klik menu atau scroll untuk berpindah section
-- Mobile: tap hamburger menu
+### Run Development
+```bash
+npx expo start
+```
+Scan QR code dengan Expo Go (Android/iOS).
 
-### **Mini Lab**
-- Pilih tab simulasi yang ingin dicoba
-- Gunakan slider untuk mengatur parameter
-- Tekan tombol ▶ untuk memulai
-- **Shortcut**: `Spasi` untuk pause/resume
-- Tombol Reset untuk mengulang
+## Build APK
 
-### **Diskusi**
-1. Login dengan username apapun
-2. Tulis pertanyaan di form
-3. Klik topik untuk melihat detail
-4. Gunakan tombol "Kembali" untuk kembali ke list
+### Option 1: EAS Build (Recommended)
+```bash
+cd mobile
+npm install -g eas-cli
+eas login
+eas build:configure
+eas build --platform android --profile preview
+```
 
-## **Pengaturan**
+### Option 2: Local Build
+```bash
+cd mobile
+npx expo prebuild --platform android
+cd android
+./gradlew assembleRelease
+```
+APK di `android/app/build/outputs/apk/release/`
 
-### **Simulasi Physics**
-- **Jatuh Bebas**: Gravitasi 0-20 m/s², Restitusi 0-1, Gesekan udara 0-0.02
-- **Proyektil**: Kecepatan 10-150 m/s, Sudut 0-90°, Ketinggian 0-50m  
-- **Pendulum**: Panjang 0.5-3m, Massa 0.1-2kg, Redaman 0-0.1
+## Tech Stack
+
+**Web:** Vanilla HTML, CSS, JavaScript, Firebase SDK (CDN)
+
+**Mobile:** React Native 0.76, Expo SDK 52, Expo Router v4, TypeScript, Firebase 10.x

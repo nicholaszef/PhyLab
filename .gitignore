@@ -1,0 +1,29 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+
+# Expo
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+
+# Android build
+mobile/android/
+mobile/ios/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local

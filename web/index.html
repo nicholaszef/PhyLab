@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PhyLab — Virtual Lab Fisika</title>
+  <meta name="description" content="Virtual lab fisika interaktif untuk belajar konsep dasar fisika">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rethink+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav container">
+      <div class="nav-brand">
+        <img src="assets/logo.png" alt="PhyLab" width="20" height="30">
+        <strong>PhyLab</strong>
+      </div>
+      <button class="nav-toggle" aria-expanded="false">Menu</button>
+      <ul class="menu">
+        <li><a href="#materi">Materi</a></li>
+        <li><a href="#minilab">Mini Lab</a></li>
+        <li><a href="#diskusi">Diskusi</a></li>
+      </ul>
+      <div class="actions">
+        <span id="userInfo"></span>
+        <button id="loginBtn" class="primary">Login</button>
+        <button id="signUpBtn" class="ghost">Sign Up</button>
+        <button id="profileBtn" class="ghost" style="display:none">Profile</button>
+        <button id="logoutBtn" class="ghost" style="display:none">Logout</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section id="home" class="hero">
+      <div class="hero-inner container">
+        <div class="brand-lockup">
+          <img src="assets/logo.png" alt="PhyLab" width="60" height="82">
+          <h1 class="brand">PhyLab</h1>
+        </div>
+        <p class="tagline">Virtual lab fisika berbasis web untuk belajar konsep inti fisika melalui simulasi interaktif.</p>
+        <div class="cta">
+          <a class="btn primary" href="#minilab">Coba Mini Lab</a>
+          <a class="btn ghost" href="#materi">Jelajahi Materi</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="materi" class="container materi">
+      <header class="section-header">
+        <h2>Materi Fisika Dasar 1A</h2>
+        <p class="section-subtitle">Silabus FI-1101 untuk Mahasiswa TPB ITB</p>
+      </header>
+      <div class="materi-grid" id="materiGrid"></div>
+    </section>
+
+    <section id="minilab" class="minilab">
+      <div class="container">
+        <header class="section-header">
+          <h2>Mini Lab: Simulasi Fisika</h2>
+          <p>Pilih simulasi, ubah parameter, dan lihat hasilnya</p>
+        </header>
+        <div class="lab-tabs">
+          <button class="tab-btn active" data-lab="jatuh-bebas">Jatuh Bebas</button>
+          <button class="tab-btn" data-lab="proyektil">Proyektil</button>
+          <button class="tab-btn" data-lab="pendulum">Pendulum</button>
+        </div>
+
+        <div id="jatuh-bebas" class="lab-content active">
+          <figure class="lab-canvas">
+            <canvas id="labCanvas" width="600" height="400"></canvas>
+          </figure>
+          <div class="lab-controls">
+            <div class="control-group">
+              <label>Gravitasi (m/s²)</label>
+              <input type="range" id="g" min="1" max="20" step="0.1" value="9.8">
+              <output id="gOut">9.8</output>
+            </div>
+            <div class="control-group">
+              <label>Restitusi</label>
+              <input type="range" id="e" min="0" max="1" step="0.05" value="0.8">
+              <output id="eOut">0.8</output>
+            </div>
+            <div class="control-group">
+              <label>Hambatan Udara</label>
+              <input type="range" id="drag" min="0" max="0.02" step="0.001" value="0.004">
+              <output id="dragOut">0.004</output>
+            </div>
+            <div class="control-row">
+              <button id="play" class="primary">▶ Mulai</button>
+              <button id="pause" class="ghost">⏸ Jeda</button>
+              <button id="reset" class="ghost">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="proyektil" class="lab-content">
+          <figure class="lab-canvas">
+            <canvas id="proyektilCanvas" width="600" height="400"></canvas>
+          </figure>
+          <div class="lab-controls">
+            <div class="control-group">
+              <label>Kecepatan Awal (m/s)</label>
+              <input type="range" id="velocityProyektil" min="10" max="100" value="50">
+              <output id="velocityProyektilOut">50</output>
+            </div>
+            <div class="control-group">
+              <label>Sudut (°)</label>
+              <input type="range" id="angleProyektil" min="5" max="85" value="45">
+              <output id="angleProyektilOut">45</output>
+            </div>
+            <div class="control-group">
+              <label>Ketinggian Awal (m)</label>
+              <input type="range" id="heightProyektil" min="0" max="50" value="0">
+              <output id="heightProyektilOut">0</output>
+            </div>
+            <div class="control-row">
+              <button id="playProyektil" class="primary">▶ Mulai</button>
+              <button id="resetProyektil" class="ghost">↺ Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="pendulum" class="lab-content">
+          <figure class="lab-canvas">
+            <canvas id="pendulumCanvas" width="600" height="400"></canvas>
+          </figure>
+          <div class="lab-controls">
+            <div class="control-group">
+              <label>Panjang Tali (m)</label>
+              <input type="range" id="lengthPendulum" min="0.5" max="3" step="0.1" value="1.5">
+              <output id="lengthPendulumOut">1.5</output>
+            </div>
+            <div class="control-group">
+              <label>Massa (kg)</label>
+              <input type="range" id="massPendulum" min="0.1" max="2" step="0.1" value="1">
+              <output id="massPendulumOut">1</output>
+            </div>
+            <div class="control-group">
+              <label>Redaman</label>
+              <input type="range" id="dampingPendulum" min="0" max="0.1" step="0.01" value="0.02">
+              <output id="dampingPendulumOut">0.02</output>
+            </div>
+            <div class="control-row">
+              <button id="playPendulum" class="primary">▶ Mulai</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="diskusi" class="diskusi">
+      <div class="container">
+        <div id="discussionListView">
+          <header class="section-header">
+            <h2>Forum Diskusi</h2>
+            <p class="section-subtitle">Tanya jawab dengan pengguna lain</p>
+          </header>
+          <div id="discussionList" class="discussion-list"></div>
+          <form id="diskusiForm" class="diskusi-form">
+            <h3>Ajukan Pertanyaan</h3>
+            <textarea id="pertanyaanInput" rows="4" placeholder="Tulis pertanyaan..." required></textarea>
+            <button type="submit" class="btn primary">Kirim</button>
+          </form>
+        </div>
+        <div id="discussionDetailView" style="display:none">
+          <a href="#" class="back-link">← Kembali</a>
+          <h2 id="detailTitle"></h2>
+          <div id="detailReplies"></div>
+          <form id="replyForm" class="diskusi-form">
+            <h3>Tulis Balasan</h3>
+            <textarea id="replyInput" rows="4" placeholder="Balasan..." required></textarea>
+            <button type="submit" class="btn primary">Kirim</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="loginDialog">
+    <form class="dialog-card" id="loginFormElement">
+      <h3>Login</h3>
+      <input type="email" id="username" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      <div id="loginError" class="error-message"></div>
+      <div id="verifyNotice" style="display:none">
+        <p id="verifyMsg" class="error-message"></p>
+        <button type="button" id="resendVerifyBtn" class="ghost">Kirim Ulang Verifikasi</button>
+        <button type="button" id="dismissVerifyBtn" class="ghost">Tutup</button>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" onclick="this.closest('dialog').close()">Batal</button>
+        <button type="submit" class="primary">Login</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="signUpDialog">
+    <form class="dialog-card" id="signUpForm">
+      <h3>Buat Akun</h3>
+      <input type="text" id="signup-username" placeholder="Nama" required>
+      <input type="email" id="signup-email" placeholder="Email" required>
+      <input type="password" id="signup-password" placeholder="Password" required>
+      <div id="signupError" class="error-message"></div>
+      <div class="dialog-actions">
+        <button type="button" onclick="this.closest('dialog').close()">Batal</button>
+        <button type="submit" class="primary">Daftar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="profileDialog">
+    <div class="dialog-card">
+      <h3>Profil</h3>
+      <p id="profileUserInfo"></p>
+      <h4>Progress Kuis</h4>
+      <div id="quizProgressList"></div>
+      <button type="button" onclick="this.closest('dialog').close()">Tutup</button>
+    </div>
+  </dialog>
+
+  <dialog id="quizDialog">
+    <form class="dialog-card" id="quizForm">
+      <h3 id="quizTitle">Kuis</h3>
+      <p id="quizQuestionText"></p>
+      <div id="quizOptions"></div>
+      <p id="quizProgress"></p>
+      <div class="dialog-actions">
+        <button type="button" id="quizPrev">Sebelumnya</button>
+        <button type="button" id="quizNext" class="primary">Berikutnya</button>
+        <button type="button" id="quizSubmit" class="primary" style="display:none">Kirim</button>
+        <button type="button" onclick="this.closest('dialog').close()">Batal</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© <span id="year">2025</span> PhyLab. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
