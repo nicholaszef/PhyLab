@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "PhyLab",
-    "slug": "phylab",
+    "slug": "PhyLab",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -28,6 +28,12 @@
       "expo-router",
       "expo-secure-store",
       "expo-asset"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "af31b173-aba5-4f35-ae4c-894925a06d0f"
+      }
+    },
+    "owner": "nicholaszef"
   }
 }
